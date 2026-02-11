@@ -8,12 +8,12 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Momentum\Modal\Modal;
-use Modules\Menu\Actions\Dashboard\CreateMenuAction;
-use Modules\Menu\Actions\Dashboard\DeleteMenuAction;
-use Modules\Menu\Actions\Dashboard\UpdateMenuAction;
+use Modules\Menu\Actions\Dashboard\V1\CreateMenuAction;
+use Modules\Menu\Actions\Dashboard\V1\DeleteMenuAction;
+use Modules\Menu\Actions\Dashboard\V1\UpdateMenuAction;
 use Modules\Menu\Http\Requests\Dashboard\V1\StoreMenuRequest;
 use Modules\Menu\Http\Requests\Dashboard\V1\UpdateMenuRequest;
-use Modules\Menu\Http\Resources\MenuResource;
+use Modules\Menu\Http\Resources\Dashboard\V1\MenuResource;
 use Modules\Menu\Models\Menu;
 use Modules\Menu\Services\MenuService;
 

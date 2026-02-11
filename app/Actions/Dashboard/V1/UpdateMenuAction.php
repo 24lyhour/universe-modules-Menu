@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Menu\Actions\Dashboard;
+namespace Modules\Menu\Actions\Dashboard\V1;
 
 use Illuminate\Support\Facades\Auth;
 use Modules\Menu\Models\Menu;

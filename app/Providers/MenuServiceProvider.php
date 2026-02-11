@@ -48,7 +48,8 @@ class MenuServiceProvider extends ServiceProvider
                 route: 'menu.*'
             );
 
-            MenuService::addSubmenuItem('primary', 'menu', __('Menus'), route('menu.menus.index'), 10, null, 'menu.*', 'UtensilsCrossed');
+            MenuService::addSubmenuItem('primary', 'menu', __('Menus'), route('menu.menus.index'), 10, null, 'menu.menus.*', 'UtensilsCrossed');
+            MenuService::addSubmenuItem('primary', 'menu', __('Categories'), route('menu.categories.index'), 20, null, 'menu.categories.*', 'Layers');
         });
     }
 

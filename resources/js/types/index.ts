@@ -70,3 +70,61 @@ export interface MenuShowProps {
 export interface MenuEditProps {
     menu: Menu;
 }
+
+// Category Types
+export interface Category {
+    id: number;
+    uuid: string;
+    name: string;
+    description: string | null;
+    menu_id: number | null;
+    image_url: string | null;
+    sort_order: number;
+    status: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CategoryStats {
+    total: number;
+    active: number;
+    inactive: number;
+}
+
+export interface CategoryFilters {
+    status?: string;
+    search?: string;
+}
+
+export interface CategoryFormData {
+    name: string;
+    description: string;
+    menu_id: number | null;
+    image_url: string;
+    sort_order: number;
+    status: boolean;
+}
+
+export interface MenuOption {
+    id: number;
+    name: string;
+}
+
+export interface CategoryIndexProps {
+    categories: PaginatedResponse<Category>;
+    filters: CategoryFilters;
+    stats: CategoryStats;
+}
+
+export interface CategoryCreateProps {
+    menus: MenuOption[];
+}
+
+export interface CategoryEditProps {
+    category: Category;
+    menus: MenuOption[];
+}
+
+export interface CategoryDeleteProps {
+    category: Category;
+}

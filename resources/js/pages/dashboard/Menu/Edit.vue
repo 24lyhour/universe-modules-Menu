@@ -3,10 +3,10 @@ import { ModalForm } from '@/components/shared';
 import { useForm } from '@inertiajs/vue3';
 import { useModal } from 'momentum-modal';
 import { computed, watch } from 'vue';
-import MenuForm from '../../../Components/Dashboard/MenuForm.vue';
-import { menuSchema } from '../../../validation/menuSchema';
+import MenuForm from '@menu/Components/Dashboard/MenuForm.vue';
+import { menuSchema } from '@menu/validation/menuSchema';
 import { useFormValidation } from '@/composables/useFormValidation';
-import type { MenuFormData, MenuEditProps } from '../../../types';
+import type { MenuFormData, MenuEditProps } from '@menu/types';
 
 const props = defineProps<MenuEditProps>();
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Menu\Actions\Dashboard;
+namespace Modules\Menu\Actions\Dashboard\V1;
 
 use Modules\Menu\Models\Menu;
 

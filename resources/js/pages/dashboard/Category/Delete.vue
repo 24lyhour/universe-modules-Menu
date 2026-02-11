@@ -6,9 +6,9 @@ import { computed, ref, watch } from 'vue';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AlertTriangle } from 'lucide-vue-next';
-import type { MenuEditProps } from '@menu/types';
+import type { CategoryDeleteProps } from '@menu/types';
 
-const props = defineProps<MenuEditProps>();
+const props = defineProps<CategoryDeleteProps>();
 
 const { show, close, redirect } = useModal();
 
@@ -39,7 +39,7 @@ const handleConfirmedChange = (value: boolean | 'indeterminate') => {
 };
 
 const handleSubmit = () => {
-    form.delete(`/dashboard/menus/${props.menu.id}`, {
+    form.delete(`/dashboard/categories/${props.category.id}`, {
         onSuccess: () => {
             close();
             redirect();
@@ -56,11 +56,11 @@ const handleCancel = () => {
 <template>
     <ModalForm
         v-model:open="isOpen"
-        title="Delete Menu"
+        title="Delete Category"
         description="This action cannot be undone"
         mode="delete"
         size="md"
-        submit-text="Delete Menu"
+        submit-text="Delete Category"
         :loading="form.processing"
         :disabled="!canSubmit"
         @submit="handleSubmit"
@@ -72,10 +72,10 @@ const handleCancel = () => {
                 <AlertTriangle class="mt-0.5 h-5 w-5 text-destructive" />
                 <div class="space-y-1">
                     <p class="text-sm font-medium text-destructive">
-                        You are about to delete this menu
+                        You are about to delete this category
                     </p>
                     <p class="text-sm text-muted-foreground">
-                        <strong>{{ menu.name }}</strong> will be permanently removed.
+                        <strong>{{ category.name }}</strong> will be permanently removed.
                     </p>
                 </div>
             </div>

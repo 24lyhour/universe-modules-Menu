@@ -18,12 +18,12 @@ class Category extends Model
         'menu_id',
         'product_id',
         'name',
-        'image_Url',
+        'image_url',
         'description',
         'sort_order',
         'status',
-        
-       
+        'created_by',
+        'updated_by',
     ];
 
     protected static function newFactory(): CategoryFactory

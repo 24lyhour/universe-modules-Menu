@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ModalForm } from '@/components/shared';
-import MenuForm from '@menu/Components/Dashboard/MenuForm.vue';
+import CategoryForm from '@menu/Components/Dashboard/CategoryForm.vue';
 import { useForm } from '@inertiajs/vue3';
 import { useModal } from 'momentum-modal';
 import { computed, watch } from 'vue';
-import { menuSchema } from '@menu/validation/menuSchema';
+import { categorySchema } from '@menu/validation/categorySchema';
 import { useFormValidation } from '@/composables/useFormValidation';
-import type { MenuFormData } from '@menu/types';
+import type { CategoryFormData, CategoryCreateProps } from '@menu/types';
+
+const props = defineProps<CategoryCreateProps>();
 
 const { show, close, redirect } = useModal();
 
@@ -20,23 +22,18 @@ const isOpen = computed({
     },
 });
 
-const form = useForm<MenuFormData>({
+const form = useForm<CategoryFormData>({
     name: '',
     description: '',
+    menu_id: null,
     image_url: '',
+    sort_order: 0,
     status: true,
-    schedule_mode: '',
-    schedule_days: '',
-    schedule_start_time: '',
-    schedule_end_time: '',
-    schedule_start_date: '',
-    schedule_end_date: '',
-    schedule_status: false,
 });
 
 // Use shared validation composable
 const { validateForm, validateAndSubmit, createIsFormInvalid } = useFormValidation(
-    menuSchema,
+    categorySchema,
     ['name'] // Required fields
 );
 
@@ -44,15 +41,10 @@ const { validateForm, validateAndSubmit, createIsFormInvalid } = useFormValidati
 const getFormData = () => ({
     name: form.name,
     description: form.description || null,
+    menu_id: form.menu_id,
     image_url: form.image_url || null,
+    sort_order: form.sort_order,
     status: form.status,
-    schedule_mode: form.schedule_mode || null,
-    schedule_days: form.schedule_days || null,
-    schedule_start_time: form.schedule_start_time || null,
-    schedule_end_time: form.schedule_end_time || null,
-    schedule_start_date: form.schedule_start_date || null,
-    schedule_end_date: form.schedule_end_date || null,
-    schedule_status: form.schedule_status || null,
 });
 
 // Watch form changes to validate in real-time
@@ -65,7 +57,7 @@ const isFormInvalid = createIsFormInvalid(getFormData);
 
 const handleSubmit = () => {
     validateAndSubmit(getFormData(), form, () => {
-        form.post('/dashboard/menus', {
+        form.post('/dashboard/categories', {
             onSuccess: () => {
                 close();
                 redirect();
@@ -83,16 +75,16 @@ const handleCancel = () => {
 <template>
     <ModalForm
         v-model:open="isOpen"
-        title="Create Menu"
-        description="Add a new menu to your business"
+        title="Create Category"
+        description="Add a new category"
         mode="create"
         size="xl"
-        submit-text="Create Menu"
+        submit-text="Create Category"
         :loading="form.processing"
         :disabled="isFormInvalid"
         @submit="handleSubmit"
         @cancel="handleCancel"
     >
-        <MenuForm v-model="form" mode="create" />
+        <CategoryForm v-model="form" mode="create" :menus="props.menus" />
     </ModalForm>
 </template>

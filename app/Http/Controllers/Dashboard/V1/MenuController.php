@@ -15,7 +15,9 @@ use Modules\Menu\Http\Requests\Dashboard\V1\StoreMenuRequest;
 use Modules\Menu\Http\Requests\Dashboard\V1\UpdateMenuRequest;
 use Modules\Menu\Http\Resources\Dashboard\V1\MenuResource;
 use Modules\Menu\Models\Menu;
+use Modules\Menu\Models\MenuType;
 use Modules\Menu\Services\MenuService;
+use Modules\Outlet\Models\Outlet;
 
 class MenuController extends Controller
 {
@@ -46,8 +48,20 @@ class MenuController extends Controller
      */
     public function create(): Modal
     {
-        return Inertia::modal('menu::dashboard/Menu/Create')
-            ->baseRoute('menu.menus.index');
+        $outlets = Outlet::where('status', 'active')
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        $menuTypes = MenuType::where('status', true)
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        return Inertia::modal('menu::dashboard/Menu/Create', [
+            'outlets' => $outlets,
+            'menuTypes' => $menuTypes,
+        ])->baseRoute('menu.menus.index');
     }
 
     /**
@@ -77,8 +91,20 @@ class MenuController extends Controller
      */
     public function edit(Menu $menu): Modal
     {
+        $outlets = Outlet::where('status', 'active')
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        $menuTypes = MenuType::where('status', true)
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
         return Inertia::modal('menu::dashboard/Menu/Edit', [
             'menu' => (new MenuResource($menu))->resolve(),
+            'outlets' => $outlets,
+            'menuTypes' => $menuTypes,
         ])->baseRoute('menu.menus.index');
     }
 

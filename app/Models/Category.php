@@ -11,6 +11,11 @@ class Category extends Model
     use HasFactory;
 
     /**
+     * The table associated with the model.
+     */
+    protected $table = 'menu_categories';
+
+    /**
      * The attributes that are mass assignable.
      */
     protected $fillable = [

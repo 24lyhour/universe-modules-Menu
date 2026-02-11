@@ -27,6 +27,8 @@ const form = useForm<MenuFormData>({
     name: props.menu.name,
     description: props.menu.description || '',
     image_url: props.menu.image_url || '',
+    outlet_id: props.menu.outlet_id,
+    menu_type_id: props.menu.menu_type_id,
     status: props.menu.status,
     schedule_mode: props.menu.schedule_mode || '',
     schedule_days: props.menu.schedule_days || '',
@@ -48,6 +50,8 @@ const getFormData = () => ({
     name: form.name,
     description: form.description || null,
     image_url: form.image_url || null,
+    outlet_id: form.outlet_id,
+    menu_type_id: form.menu_type_id,
     status: form.status,
     schedule_mode: form.schedule_mode || null,
     schedule_days: form.schedule_days || null,
@@ -97,6 +101,11 @@ const handleCancel = () => {
         @submit="handleSubmit"
         @cancel="handleCancel"
     >
-        <MenuForm v-model="form" mode="edit" />
+        <MenuForm
+            v-model="form"
+            mode="edit"
+            :outlets="props.outlets"
+            :menu-types="props.menuTypes"
+        />
     </ModalForm>
 </template>

@@ -35,9 +35,14 @@ const columns: TableColumn<Menu>[] = [
         render: (menu) => menu.name,
     },
     {
-        key: 'description',
-        label: 'Description',
-        render: (menu) => menu.description || '-',
+        key: 'outlet_name',
+        label: 'Outlet',
+        render: (menu) => menu.outlet_name || '-',
+    },
+    {
+        key: 'menu_type_name',
+        label: 'Menu Type',
+        render: (menu) => menu.menu_type_name || '-',
     },
     {
         key: 'status',

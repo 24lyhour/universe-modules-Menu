@@ -15,6 +15,8 @@ class MenuTypeResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'image_url' => $this->image_url,
+            'outlet_id' => $this->outlet_id,
+            'outlet_name' => $this->whenLoaded('outlet', fn() => $this->outlet?->name),
             'sort_order' => $this->sort_order,
             'status' => $this->status,
             'created_at' => $this->created_at?->toISOString(),

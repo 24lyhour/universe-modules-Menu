@@ -18,6 +18,7 @@ class MenuType extends Model
         'description',
         'menu_id',
         'category_id',
+        'outlet_id',
         'image_url',
         'sort_order',
         'status',
@@ -32,6 +33,14 @@ class MenuType extends Model
         'status' => 'boolean',
         'sort_order' => 'integer',
     ];
+
+    /**
+     * Belongs to outlet
+     */
+    public function outlet()
+    {
+        return $this->belongsTo(\Modules\Outlet\Models\Outlet::class);
+    }
 
     /**
      * Get the menus for this type.

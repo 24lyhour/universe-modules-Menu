@@ -7,7 +7,9 @@ import { computed, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import { menuTypeSchema } from '@menu/validation/menuTypeSchema';
 import { useFormValidation } from '@/composables/useFormValidation';
-import type { MenuTypeFormData } from '@menu/types';
+import type { MenuTypeFormData, MenuTypeCreateProps } from '@menu/types';
+
+const props = defineProps<MenuTypeCreateProps>();
 
 const { show, close, redirect } = useModal();
 
@@ -25,6 +27,7 @@ const form = useForm<MenuTypeFormData>({
     name: '',
     description: '',
     image_url: '',
+    outlet_id: null,
     sort_order: 0,
     status: true,
 });
@@ -40,6 +43,7 @@ const getFormData = () => ({
     name: form.name,
     description: form.description || null,
     image_url: form.image_url || null,
+    outlet_id: form.outlet_id,
     sort_order: form.sort_order,
     status: form.status,
 });
@@ -85,6 +89,6 @@ const handleCancel = () => {
         @submit="handleSubmit"
         @cancel="handleCancel"
     >
-        <MenuTypeForm v-model="form" mode="create" />
+        <MenuTypeForm v-model="form" mode="create" :outlets="props.outlets" />
     </ModalForm>
 </template>

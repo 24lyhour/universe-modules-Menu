@@ -6,6 +6,10 @@ export interface Menu {
     name: string;
     description: string | null;
     image_url: string | null;
+    outlet_id: number | null;
+    menu_type_id: number | null;
+    outlet_name: string | null;
+    menu_type_name: string | null;
     status: boolean;
     schedule_mode: string | null;
     schedule_days: string | null;
@@ -47,6 +51,8 @@ export interface MenuFormData {
     name: string;
     description: string;
     image_url: string;
+    outlet_id: number | null;
+    menu_type_id: number | null;
     status: boolean;
     schedule_mode: string;
     schedule_days: string;
@@ -55,6 +61,16 @@ export interface MenuFormData {
     schedule_start_date: string;
     schedule_end_date: string;
     schedule_status: boolean;
+}
+
+export interface OutletOption {
+    id: number;
+    name: string;
+}
+
+export interface MenuTypeOption {
+    id: number;
+    name: string;
 }
 
 export interface MenuIndexProps {
@@ -67,8 +83,15 @@ export interface MenuShowProps {
     menu: Menu;
 }
 
+export interface MenuCreateProps {
+    outlets: OutletOption[];
+    menuTypes: MenuTypeOption[];
+}
+
 export interface MenuEditProps {
     menu: Menu;
+    outlets: OutletOption[];
+    menuTypes: MenuTypeOption[];
 }
 
 // Category Types
@@ -136,6 +159,8 @@ export interface MenuType {
     name: string;
     description: string | null;
     image_url: string | null;
+    outlet_id: number | null;
+    outlet_name: string | null;
     sort_order: number;
     status: boolean;
     created_at: string;
@@ -157,6 +182,7 @@ export interface MenuTypeFormData {
     name: string;
     description: string;
     image_url: string;
+    outlet_id: number | null;
     sort_order: number;
     status: boolean;
 }
@@ -167,10 +193,13 @@ export interface MenuTypeIndexProps {
     stats: MenuTypeStats;
 }
 
-export interface MenuTypeCreateProps {}
+export interface MenuTypeCreateProps {
+    outlets: OutletOption[];
+}
 
 export interface MenuTypeEditProps {
     menuType: MenuType;
+    outlets: OutletOption[];
 }
 
 export interface MenuTypeDeleteProps {

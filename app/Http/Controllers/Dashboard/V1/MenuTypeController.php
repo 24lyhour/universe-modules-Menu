@@ -15,6 +15,7 @@ use Modules\Menu\Http\Requests\Dashboard\V1\StoreMenuTypeRequest;
 use Modules\Menu\Http\Requests\Dashboard\V1\UpdateMenuTypeRequest;
 use Modules\Menu\Http\Resources\Dashboard\V1\MenuTypeResource;
 use Modules\Menu\Models\MenuType;
+use Modules\Outlet\Models\Outlet;
 
 class MenuTypeController extends Controller
 {
@@ -32,7 +33,7 @@ class MenuTypeController extends Controller
         $perPage = $request->input('per_page', 10);
         $filters = $request->only(['search', 'status']);
 
-        $query = MenuType::query();
+        $query = MenuType::with('outlet');
 
         if (!empty($filters['search'])) {
             $query->where('name', 'like', '%' . $filters['search'] . '%');
@@ -70,8 +71,14 @@ class MenuTypeController extends Controller
      */
     public function create(): Modal
     {
-        return Inertia::modal('menu::dashboard/TypeMenu/Create')
-            ->baseRoute('menu.menu-types.index');
+        $outlets = Outlet::where('status', 'active')
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        return Inertia::modal('menu::dashboard/TypeMenu/Create', [
+            'outlets' => $outlets,
+        ])->baseRoute('menu.menu-types.index');
     }
 
     /**
@@ -101,8 +108,14 @@ class MenuTypeController extends Controller
      */
     public function edit(MenuType $menuType): Modal
     {
+        $outlets = Outlet::where('status', 'active')
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
         return Inertia::modal('menu::dashboard/TypeMenu/Edit', [
             'menuType' => new MenuTypeResource($menuType),
+            'outlets' => $outlets,
         ])->baseRoute('menu.menu-types.index');
     }
 

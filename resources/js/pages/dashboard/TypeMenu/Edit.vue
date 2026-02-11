@@ -27,6 +27,7 @@ const form = useForm<MenuTypeFormData>({
     name: props.menuType.name,
     description: props.menuType.description || '',
     image_url: props.menuType.image_url || '',
+    outlet_id: props.menuType.outlet_id,
     sort_order: props.menuType.sort_order,
     status: props.menuType.status,
 });
@@ -42,6 +43,7 @@ const getFormData = () => ({
     name: form.name,
     description: form.description || null,
     image_url: form.image_url || null,
+    outlet_id: form.outlet_id,
     sort_order: form.sort_order,
     status: form.status,
 });
@@ -85,6 +87,6 @@ const handleCancel = () => {
         @submit="handleSubmit"
         @cancel="handleCancel"
     >
-        <MenuTypeForm v-model="form" mode="edit" />
+        <MenuTypeForm v-model="form" mode="edit" :outlets="props.outlets" />
     </ModalForm>
 </template>

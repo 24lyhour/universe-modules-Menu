@@ -13,6 +13,8 @@ export const menuSchema = z.object({
         .optional()
         .nullable(),
     image_url: z.string().optional().nullable(),
+    outlet_id: z.number().int().positive().optional().nullable(),
+    menu_type_id: z.number().int().positive().optional().nullable(),
     status: z.boolean().default(true),
     schedule_mode: z.string().optional().nullable(),
     schedule_days: z.string().optional().nullable(),

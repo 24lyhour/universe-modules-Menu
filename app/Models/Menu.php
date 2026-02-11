@@ -54,31 +54,39 @@ class Menu extends Model
     }
 
     /**
-     * BelongTo resltion  to the outlet
+     * Belongs to outlet
      */
-    public function outlet() 
+    public function outlet()
     {
-        return $this->hasMany(Outlet::class);
+        return $this->belongsTo(\Modules\Outlet\Models\Outlet::class);
     }
 
     /**
-     * belong to the products
+     * Belongs to menu type
+     */
+    public function menuType()
+    {
+        return $this->belongsTo(MenuType::class);
+    }
+
+    /**
+     * Belongs to product
      */
     public function product()
     {
-        return $this->belongTo(Product::class);
+        return $this->belongsTo(Product::class);
     }
 
     /**
-     * belong to the categorys 
+     * Has many categories
      */
-    public function category() 
+    public function categories()
     {
         return $this->hasMany(Category::class);
     }
 
     /**
-     * beloong to company
+     * Belongs to company
      */
     public function company()
     {

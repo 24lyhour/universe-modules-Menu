@@ -14,72 +14,72 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Plus, Layers, CheckCircle, XCircle, Search, Eye, Pencil, Trash2 } from 'lucide-vue-next';
+import { Plus, ListOrdered, CheckCircle, XCircle, Search, Eye, Pencil, Trash2 } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
-import type { CategoryIndexProps, Category } from '@menu/types';
+import type { MenuTypeIndexProps, MenuType } from '@menu/types';
 
-const props = defineProps<CategoryIndexProps>();
+const props = defineProps<MenuTypeIndexProps>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Menus', href: '/dashboard/menus' },
-    { title: 'Categories', href: '/dashboard/categories' },
+    { title: 'Menu Types', href: '/dashboard/menu-types' },
 ];
 
 const search = ref(props.filters.search || '');
 const statusFilter = ref(props.filters.status || 'all');
 
-const columns: TableColumn<Category>[] = [
+const columns: TableColumn<MenuType>[] = [
     {
         key: 'name',
-        label: 'Category Name',
-        render: (category) => category.name,
+        label: 'Type Name',
+        render: (menuType) => menuType.name,
     },
     {
         key: 'description',
         label: 'Description',
-        render: (category) => category.description || '-',
+        render: (menuType) => menuType.description || '-',
     },
     {
         key: 'sort_order',
         label: 'Sort Order',
-        render: (category) => category.sort_order.toString(),
+        render: (menuType) => menuType.sort_order.toString(),
     },
     {
         key: 'status',
         label: 'Status',
-        render: (category) => category.status ? 'Active' : 'Inactive',
+        render: (menuType) => menuType.status ? 'Active' : 'Inactive',
     },
 ];
 
-const actions: TableAction<Category>[] = [
+const actions: TableAction<MenuType>[] = [
     {
         label: 'View',
         icon: Eye,
-        onClick: (category) => router.visit(`/dashboard/categories/${category.id}`),
+        onClick: (menuType) => router.visit(`/dashboard/menu-types/${menuType.id}`),
     },
     {
         label: 'Edit',
         icon: Pencil,
-        onClick: (category) => router.visit(`/dashboard/categories/${category.id}/edit`),
+        onClick: (menuType) => router.visit(`/dashboard/menu-types/${menuType.id}/edit`),
     },
     {
         label: 'Delete',
         icon: Trash2,
-        onClick: (category) => router.visit(`/dashboard/categories/${category.id}/delete`),
+        onClick: (menuType) => router.visit(`/dashboard/menu-types/${menuType.id}/delete`),
         variant: 'destructive',
     },
 ];
 
 const pagination = computed<PaginationData>(() => ({
-    current_page: props.categories.meta.current_page,
-    last_page: props.categories.meta.last_page,
-    per_page: props.categories.meta.per_page,
-    total: props.categories.meta.total,
+    current_page: props.menuTypes.meta.current_page,
+    last_page: props.menuTypes.meta.last_page,
+    per_page: props.menuTypes.meta.per_page,
+    total: props.menuTypes.meta.total,
 }));
 
 const handlePageChange = (page: number) => {
-    router.get('/dashboard/categories', {
+    router.get('/dashboard/menu-types', {
         page,
         per_page: pagination.value.per_page,
         search: search.value || undefined,
@@ -88,7 +88,7 @@ const handlePageChange = (page: number) => {
 };
 
 const handlePerPageChange = (perPage: number) => {
-    router.get('/dashboard/categories', {
+    router.get('/dashboard/menu-types', {
         per_page: perPage,
         search: search.value || undefined,
         status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
@@ -96,25 +96,25 @@ const handlePerPageChange = (perPage: number) => {
 };
 
 const handleSearch = () => {
-    router.get('/dashboard/categories', {
+    router.get('/dashboard/menu-types', {
         search: search.value || undefined,
         status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
     }, { preserveState: true });
 };
 
 watch(statusFilter, () => {
-    router.get('/dashboard/categories', {
+    router.get('/dashboard/menu-types', {
         search: search.value || undefined,
         status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
     }, { preserveState: true });
 });
 
 const handleCreate = () => {
-    router.visit('/dashboard/categories/create');
+    router.visit('/dashboard/menu-types/create');
 };
 
-const handleStatusToggle = (category: Category, newStatus: boolean) => {
-    router.put(`/dashboard/categories/${category.id}/toggle-status`, {
+const handleStatusToggle = (menuType: MenuType, newStatus: boolean) => {
+    router.put(`/dashboard/menu-types/${menuType.id}/toggle-status`, {
         status: newStatus,
     }, {
         preserveState: true,
@@ -125,15 +125,15 @@ const handleStatusToggle = (category: Category, newStatus: boolean) => {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Head title="Categories" />
+        <Head title="Menu Types" />
 
         <div class="flex h-full flex-1 flex-col gap-6 p-6">
             <!-- Stats -->
             <div class="grid gap-4 md:grid-cols-3">
                 <StatsCard
-                    title="Total Categories"
+                    title="Total Types"
                     :value="props.stats.total"
-                    :icon="Layers"
+                    :icon="ListOrdered"
                 />
                 <StatsCard
                     title="Active"
@@ -153,12 +153,12 @@ const handleStatusToggle = (category: Category, newStatus: boolean) => {
             <div class="flex flex-col gap-4">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h2 class="text-lg font-semibold">Categories</h2>
-                        <p class="text-sm text-muted-foreground">Manage your categories</p>
+                        <h2 class="text-lg font-semibold">Menu Types</h2>
+                        <p class="text-sm text-muted-foreground">Manage your menu types</p>
                     </div>
                     <Button @click="handleCreate">
                         <Plus class="mr-2 h-4 w-4" />
-                        Add Category
+                        Add Menu Type
                     </Button>
                 </div>
 
@@ -168,7 +168,7 @@ const handleStatusToggle = (category: Category, newStatus: boolean) => {
                         <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                             v-model="search"
-                            placeholder="Search categories..."
+                            placeholder="Search menu types..."
                             class="pl-9"
                             @keyup.enter="handleSearch"
                         />
@@ -187,7 +187,7 @@ const handleStatusToggle = (category: Category, newStatus: boolean) => {
 
                 <!-- Table -->
                 <TableReusable
-                    :data="props.categories.data"
+                    :data="props.menuTypes.data"
                     :columns="columns"
                     :actions="actions"
                     :pagination="pagination"

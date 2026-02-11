@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import { ModalForm } from '@/components/shared';
-import CategoryForm from '@menu/Components/Dashboard/CategoryForm.vue';
+import MenuTypeForm from '@menu/Components/Dashboard/MenuTypeForm.vue';
 import { useForm } from '@inertiajs/vue3';
 import { useModal } from 'momentum-modal';
 import { computed, watch } from 'vue';
-import { categorySchema } from '@menu/validation/categorySchema';
-import { useFormValidation } from '@/composables/useFormValidation';
 import { toast } from 'vue-sonner';
-import type { CategoryFormData, CategoryCreateProps } from '@menu/types';
-
-const props = defineProps<CategoryCreateProps>();
+import { menuTypeSchema } from '@menu/validation/menuTypeSchema';
+import { useFormValidation } from '@/composables/useFormValidation';
+import type { MenuTypeFormData } from '@menu/types';
 
 const { show, close, redirect } = useModal();
 
@@ -23,10 +21,9 @@ const isOpen = computed({
     },
 });
 
-const form = useForm<CategoryFormData>({
+const form = useForm<MenuTypeFormData>({
     name: '',
     description: '',
-    menu_id: null,
     image_url: '',
     sort_order: 0,
     status: true,
@@ -34,23 +31,20 @@ const form = useForm<CategoryFormData>({
 
 // Use shared validation composable
 const { validateForm, validateAndSubmit, createIsFormInvalid } = useFormValidation(
-    categorySchema,
+    menuTypeSchema,
     ['name'] // Required fields
 );
-/**
- * 
-Get form data for validation
 
- */
+// Get form data for validation
 const getFormData = () => ({
     name: form.name,
     description: form.description || null,
-    menu_id: form.menu_id,
     image_url: form.image_url || null,
     sort_order: form.sort_order,
     status: form.status,
 });
 
+// Watch form changes to validate in real-time
 watch(() => form.name, () => {
     if (form.name) validateForm(getFormData());
 });
@@ -60,9 +54,9 @@ const isFormInvalid = createIsFormInvalid(getFormData);
 
 const handleSubmit = () => {
     validateAndSubmit(getFormData(), form, () => {
-        form.post('/dashboard/categories', {
+        form.post('/dashboard/menu-types', {
             onSuccess: () => {
-                toast.success('Category created successfully.');
+                toast.success('Menu type created successfully.');
                 setTimeout(() => {
                     close();
                     redirect();
@@ -81,16 +75,16 @@ const handleCancel = () => {
 <template>
     <ModalForm
         v-model:open="isOpen"
-        title="Create Category"
-        description="Add a new category"
+        title="Create Menu Type"
+        description="Add a new menu type"
         mode="create"
         size="xl"
-        submit-text="Create Category"
+        submit-text="Create Menu Type"
         :loading="form.processing"
         :disabled="isFormInvalid"
         @submit="handleSubmit"
         @cancel="handleCancel"
     >
-        <CategoryForm v-model="form" mode="create" :menus="props.menus" />
+        <MenuTypeForm v-model="form" mode="create" />
     </ModalForm>
 </template>

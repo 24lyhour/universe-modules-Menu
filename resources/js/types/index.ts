@@ -128,3 +128,51 @@ export interface CategoryEditProps {
 export interface CategoryDeleteProps {
     category: Category;
 }
+
+// Menu Type Types
+export interface MenuType {
+    id: number;
+    uuid: string;
+    name: string;
+    description: string | null;
+    image_url: string | null;
+    sort_order: number;
+    status: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface MenuTypeStats {
+    total: number;
+    active: number;
+    inactive: number;
+}
+
+export interface MenuTypeFilters {
+    status?: string;
+    search?: string;
+}
+
+export interface MenuTypeFormData {
+    name: string;
+    description: string;
+    image_url: string;
+    sort_order: number;
+    status: boolean;
+}
+
+export interface MenuTypeIndexProps {
+    menuTypes: PaginatedResponse<MenuType>;
+    filters: MenuTypeFilters;
+    stats: MenuTypeStats;
+}
+
+export interface MenuTypeCreateProps {}
+
+export interface MenuTypeEditProps {
+    menuType: MenuType;
+}
+
+export interface MenuTypeDeleteProps {
+    menuType: MenuType;
+}

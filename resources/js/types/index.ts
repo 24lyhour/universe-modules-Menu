@@ -58,7 +58,7 @@ export interface MenuFormData {
 }
 
 export interface MenuIndexProps {
-    menus: PaginatedResponse<Menu>;
+    menuItems: PaginatedResponse<Menu>;
     filters: MenuFilters;
     stats: MenuStats;
 }

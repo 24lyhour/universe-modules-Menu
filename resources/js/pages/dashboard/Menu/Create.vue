@@ -32,6 +32,11 @@ const form = useForm<MenuFormData>({
     schedule_status: false,
 });
 
+// Disable submit button until required fields are filled
+const isFormInvalid = computed(() => {
+    return !form.name || form.name.trim() === '';
+});
+
 const handleSubmit = () => {
     form.post('/dashboard/menus', {
         onSuccess: () => {
@@ -56,6 +61,7 @@ const handleCancel = () => {
         size="xl"
         submit-text="Create Menu"
         :loading="form.processing"
+        :disabled="isFormInvalid"
         @submit="handleSubmit"
         @cancel="handleCancel"
     >

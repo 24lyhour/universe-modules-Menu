@@ -35,7 +35,7 @@ class MenuController extends Controller
         $stats = $this->menuService->getStats();
 
         return Inertia::render('menu::dashboard/Menu/Index', [
-            'menus' => MenuResource::collection($menus)->response()->getData(true),
+            'menuItems' => MenuResource::collection($menus)->response()->getData(true),
             'filters' => $filters,
             'stats' => $stats,
         ]);

@@ -19,7 +19,7 @@ import type { MenuIndexProps, Menu } from '../../../types';
 
 const props = defineProps<MenuIndexProps>();
 
-const { menus, filters, stats } = props;
+const { menuItems, filters, stats } = props;
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -67,10 +67,10 @@ const actions: TableAction<Menu>[] = [
 ];
 
 const pagination: PaginationData = {
-    current_page: props.menus.meta.current_page,
-    last_page: props.menus.meta.last_page,
-    per_page: props.menus.meta.per_page,
-    total: props.menus.meta.total,
+    current_page: props.menuItems.meta.current_page,
+    last_page: props.menuItems.meta.last_page,
+    per_page: props.menuItems.meta.per_page,
+    total: props.menuItems.meta.total,
 };
 
 const handlePageChange = (page: number) => {
@@ -173,7 +173,7 @@ const handleCreate = () => {
 
                 <!-- Table -->
                 <TableReusable
-                    :data="menus.data"
+                    :data="menuItems.data"
                     :columns="columns"
                     :actions="actions"
                     :pagination="pagination"

@@ -1,15 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Menu\Http\Controllers\MenuController;
+use Modules\Menu\Http\Controllers\Dashboard\V1\MenuController;
 
-
-
-/**
- * menu module dashboard routes
- */
-Route::middleware(['auth', 'verified', 'module:menu'])
-    ->prefix('dashboard')
-    ->group(function () {
-        Route::resource('menus', MenuController::class)->names('menu');
-    });
+Route::middleware(['auth', 'verified'])->prefix('dashboard')->name('menu.')->group(function () {
+    // Menus
+    Route::resource('menus', MenuController::class)->names('menus');
+    Route::get('menus/{menu}/delete', [MenuController::class, 'confirmDelete'])->name('menus.confirm-delete');
+});

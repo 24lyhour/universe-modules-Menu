@@ -41,14 +41,14 @@ class MenuServiceProvider extends ServiceProvider
                 menu: 'primary',
                 id: 'menu',
                 title: __('Menu'),
-                url: route('menu.index'),
+                url: route('menu.menus.index'),
                 icon: 'UtensilsCrossed',
                 order: 60,
                 permissions: null,
                 route: 'menu.*'
             );
 
-            MenuService::addSubmenuItem('primary', 'menu', __('Menus'), route('menu.index'), 10, null, 'menu.*', 'UtensilsCrossed');
+            MenuService::addSubmenuItem('primary', 'menu', __('Menus'), route('menu.menus.index'), 10, null, 'menu.*', 'UtensilsCrossed');
         });
     }
 

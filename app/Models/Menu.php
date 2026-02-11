@@ -16,13 +16,15 @@ class Menu extends Model
     protected $fillable = [
         'uuid',
         'tenant_type',
+        'company_id',
         'tenant_id',
         'outlet_id',
         'menu_id',
+        'menu_type_id',
         'product_id',
         'category_id',
         'status',
-        'name', 
+        'name',
         'description',
         'image_url',
         'schedule_mode',
@@ -32,7 +34,18 @@ class Menu extends Model
         'schedule_start_date',
         'schedule_end_date',
         'schedule_status',
-        
+        'created_by',
+        'updated_by',
+    ];
+
+    /**
+     * cast
+     */
+    protected $casts = [
+       
+        'status' => 'boolean'   ,
+        'schedule_status' => 'boolean',
+       
     ];
 
     protected static function newFactory(): MenuFactory
@@ -62,5 +75,13 @@ class Menu extends Model
     public function category() 
     {
         return $this->hasMany(Category::class);
+    }
+
+    /**
+     * beloong to company
+     */
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
     }
 }

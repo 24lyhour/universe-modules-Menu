@@ -3,6 +3,7 @@ import { ModalForm } from '@/components/shared';
 import { useForm } from '@inertiajs/vue3';
 import { useModal } from 'momentum-modal';
 import { computed, watch } from 'vue';
+import { toast } from 'vue-sonner';
 import CategoryForm from '@menu/Components/Dashboard/CategoryForm.vue';
 import { categorySchema } from '@menu/validation/categorySchema';
 import { useFormValidation } from '@/composables/useFormValidation';
@@ -57,8 +58,11 @@ const handleSubmit = () => {
     validateAndSubmit(getFormData(), form, () => {
         form.put(`/dashboard/categories/${props.category.id}`, {
             onSuccess: () => {
-                close();
-                redirect();
+                toast.success('Category updated successfully.');
+                setTimeout(() => {
+                    close();
+                    redirect();
+                }, 100);
             },
         });
     });

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { TableReusable, StatsCard } from '@/components/shared';
@@ -17,6 +17,13 @@ import {
 import { Plus, Layers, CheckCircle, XCircle, Search, Eye, Pencil, Trash2 } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 import type { CategoryIndexProps, Category } from '@menu/types';
+import { toast } from 'vue-sonner';
+
+// Test toast on mount
+onMounted(() => {
+    console.log('Index mounted - testing toast');
+    toast.success('Page loaded - Toast test');
+});
 
 const props = defineProps<CategoryIndexProps>();
 

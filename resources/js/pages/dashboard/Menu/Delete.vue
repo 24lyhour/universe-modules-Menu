@@ -3,6 +3,7 @@ import { ModalForm } from '@/components/shared';
 import { useForm } from '@inertiajs/vue3';
 import { useModal } from 'momentum-modal';
 import { computed, ref, watch } from 'vue';
+import { toast } from 'vue-sonner';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AlertTriangle } from 'lucide-vue-next';
@@ -41,8 +42,11 @@ const handleConfirmedChange = (value: boolean | 'indeterminate') => {
 const handleSubmit = () => {
     form.delete(`/dashboard/menus/${props.menu.id}`, {
         onSuccess: () => {
-            close();
-            redirect();
+            toast.success('Menu deleted successfully.');
+            setTimeout(() => {
+                close();
+                redirect();
+            }, 100);
         },
     });
 };

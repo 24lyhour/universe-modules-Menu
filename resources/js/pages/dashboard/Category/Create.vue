@@ -6,6 +6,7 @@ import { useModal } from 'momentum-modal';
 import { computed, watch } from 'vue';
 import { categorySchema } from '@menu/validation/categorySchema';
 import { useFormValidation } from '@/composables/useFormValidation';
+import { toast } from 'vue-sonner';
 import type { CategoryFormData, CategoryCreateProps } from '@menu/types';
 
 const props = defineProps<CategoryCreateProps>();
@@ -36,8 +37,11 @@ const { validateForm, validateAndSubmit, createIsFormInvalid } = useFormValidati
     categorySchema,
     ['name'] // Required fields
 );
+/**
+ * 
+Get form data for validation
 
-// Get form data for validation
+ */
 const getFormData = () => ({
     name: form.name,
     description: form.description || null,
@@ -47,7 +51,6 @@ const getFormData = () => ({
     status: form.status,
 });
 
-// Watch form changes to validate in real-time
 watch(() => form.name, () => {
     if (form.name) validateForm(getFormData());
 });
@@ -59,8 +62,13 @@ const handleSubmit = () => {
     validateAndSubmit(getFormData(), form, () => {
         form.post('/dashboard/categories', {
             onSuccess: () => {
-                close();
-                redirect();
+                console.log('Category created - showing toast');
+                toast.success('Category created successfully.');
+                console.log('Toast called');
+                setTimeout(() => {
+                    close();
+                    redirect();
+                }, 100);
             },
         });
     });

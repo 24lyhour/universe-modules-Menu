@@ -26,6 +26,14 @@ class Category extends Model
         'updated_by',
     ];
 
+    /**
+     * The attributes that should be cast.
+     */
+    protected $casts = [
+        'status' => 'boolean',
+        'sort_order' => 'integer',
+    ];
+
     protected static function newFactory(): CategoryFactory
     {
         return CategoryFactory::new();

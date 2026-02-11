@@ -4,6 +4,7 @@ import MenuForm from '@menu/Components/Dashboard/MenuForm.vue';
 import { useForm } from '@inertiajs/vue3';
 import { useModal } from 'momentum-modal';
 import { computed, watch } from 'vue';
+import { toast } from 'vue-sonner';
 import { menuSchema } from '@menu/validation/menuSchema';
 import { useFormValidation } from '@/composables/useFormValidation';
 import type { MenuFormData } from '@menu/types';
@@ -67,8 +68,11 @@ const handleSubmit = () => {
     validateAndSubmit(getFormData(), form, () => {
         form.post('/dashboard/menus', {
             onSuccess: () => {
-                close();
-                redirect();
+                toast.success('Menu created successfully.');
+                setTimeout(() => {
+                    close();
+                    redirect();
+                }, 100);
             },
         });
     });

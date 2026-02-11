@@ -78,7 +78,7 @@ const isActive = computed({
                 <div class="space-y-2">
                     <Label for="status">Status <span class="text-destructive">*</span></Label>
                     <div class="flex items-center space-x-2 pt-2">
-                        <Switch id="status" v-model:checked="isActive" />
+                        <Switch id="status" v-model="isActive" />
                         <Label for="status" class="font-normal">
                             {{ isActive ? 'Active' : 'Inactive' }}
                         </Label>

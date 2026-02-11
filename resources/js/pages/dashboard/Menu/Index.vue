@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { TableReusable, StatsCard } from '@/components/shared';
 import type { TableColumn, TableAction, PaginationData } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import {
     Select,
     SelectContent,
@@ -18,8 +19,6 @@ import type { BreadcrumbItem } from '@/types';
 import type { MenuIndexProps, Menu } from '../../../types';
 
 const props = defineProps<MenuIndexProps>();
-
-const { menuItems, filters, stats } = props;
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -66,17 +65,17 @@ const actions: TableAction<Menu>[] = [
     },
 ];
 
-const pagination: PaginationData = {
+const pagination = computed<PaginationData>(() => ({
     current_page: props.menuItems.meta.current_page,
     last_page: props.menuItems.meta.last_page,
     per_page: props.menuItems.meta.per_page,
     total: props.menuItems.meta.total,
-};
+}));
 
 const handlePageChange = (page: number) => {
     router.get('/dashboard/menus', {
         page,
-        per_page: pagination.per_page,
+        per_page: pagination.value.per_page,
         search: search.value || undefined,
         status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
     }, { preserveState: true });
@@ -107,6 +106,20 @@ watch(statusFilter, () => {
 const handleCreate = () => {
     router.visit('/dashboard/menus/create');
 };
+
+/**
+ * handleStatusToggle
+ * @param menu 
+ * @param newStatus 
+ */
+const handleStatusToggle = (menu: Menu, newStatus: boolean) => {
+    router.put(`/dashboard/menus/${menu.id}/toggle-status`, {
+        status: newStatus,
+    }, {
+        preserveState: true,
+        preserveScroll: true,
+    });
+};
 </script>
 
 <template>
@@ -118,18 +131,18 @@ const handleCreate = () => {
             <div class="grid gap-4 md:grid-cols-3">
                 <StatsCard
                     title="Total Menus"
-                    :value="stats.total"
+                    :value="props.stats.total"
                     :icon="UtensilsCrossed"
                 />
                 <StatsCard
                     title="Active"
-                    :value="stats.active"
+                    :value="props.stats.active"
                     :icon="CheckCircle"
                     variant="success"
                 />
                 <StatsCard
                     title="Inactive"
-                    :value="stats.inactive"
+                    :value="props.stats.inactive"
                     :icon="XCircle"
                     variant="warning"
                 />
@@ -173,14 +186,26 @@ const handleCreate = () => {
 
                 <!-- Table -->
                 <TableReusable
-                    :data="menuItems.data"
+                    :data="props.menuItems.data"
                     :columns="columns"
                     :actions="actions"
                     :pagination="pagination"
                     :searchable="false"
                     @page-change="handlePageChange"
                     @per-page-change="handlePerPageChange"
-                />
+                >
+                    <template #cell-status="{ item }">
+                        <div class="flex items-center gap-2" @click.stop>
+                            <Switch
+                                :model-value="item.status"
+                                @update:model-value="handleStatusToggle(item, $event)"
+                            />
+                            <span class="text-sm text-muted-foreground">
+                                {{ item.status ? 'Active' : 'Inactive' }}
+                            </span>
+                        </div>
+                    </template>
+                </TableReusable>
             </div>
         </div>
     </AppLayout>

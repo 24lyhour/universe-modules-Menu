@@ -7,4 +7,5 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->name('menu.')->gro
     // Menus
     Route::resource('menus', MenuController::class)->names('menus');
     Route::get('menus/{menu}/delete', [MenuController::class, 'confirmDelete'])->name('menus.confirm-delete');
+    Route::put('menus/{menu}/toggle-status', [MenuController::class, 'toggleStatus'])->name('menus.toggle-status');
 });

@@ -2,6 +2,7 @@
 
 namespace Modules\Menu\Providers;
 
+use App\Services\MenuService;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Nwidart\Modules\Traits\PathNamespace;
@@ -27,6 +28,28 @@ class MenuServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+        $this->registerMenuItems();
+    }
+
+    /**
+     * Register menu items for the Menu module.
+     */
+    protected function registerMenuItems(): void
+    {
+        $this->app->booted(function () {
+            MenuService::addMenuItem(
+                menu: 'primary',
+                id: 'menu',
+                title: __('Menu'),
+                url: route('menu.index'),
+                icon: 'UtensilsCrossed',
+                order: 60,
+                permissions: null,
+                route: 'menu.*'
+            );
+
+            MenuService::addSubmenuItem('primary', 'menu', __('Menus'), route('menu.index'), 10, null, 'menu.*', 'UtensilsCrossed');
+        });
     }
 
     /**

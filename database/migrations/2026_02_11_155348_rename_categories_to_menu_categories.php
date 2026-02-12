@@ -10,7 +10,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::rename('categories', 'menu_categories');
+        // Only rename if categories exists and menu_categories doesn't
+        if (Schema::hasTable('categories') && !Schema::hasTable('menu_categories')) {
+            Schema::rename('categories', 'menu_categories');
+        }
     }
 
     /**
@@ -18,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::rename('menu_categories', 'categories');
+        if (Schema::hasTable('menu_categories') && !Schema::hasTable('categories')) {
+            Schema::rename('menu_categories', 'categories');
+        }
     }
 };

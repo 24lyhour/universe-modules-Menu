@@ -4,6 +4,7 @@ namespace Modules\Menu\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use \Modules\Outlet\Models\Outlet;
 
 class MenuType extends Model
 {
@@ -17,6 +18,7 @@ class MenuType extends Model
         'name',
         'description',
         'menu_id',
+        'menu_type_id',
         'category_id',
         'outlet_id',
         'image_url',
@@ -39,7 +41,7 @@ class MenuType extends Model
      */
     public function outlet()
     {
-        return $this->belongsTo(\Modules\Outlet\Models\Outlet::class);
+        return $this->belongsTo(Outlet::class);
     }
 
     /**

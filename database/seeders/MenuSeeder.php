@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 use Modules\Menu\Models\Menu;
 use Modules\Menu\Models\MenuType;
+use Modules\Outlet\Models\Outlet;
 
 class MenuSeeder extends Seeder
 {
@@ -14,13 +15,21 @@ class MenuSeeder extends Seeder
      */
     public function run(): void
     {
+        // Get all outlets
+        $outlets = Outlet::all();
+
+        if ($outlets->isEmpty()) {
+            $this->command->warn('No outlets found. Please run OutletSeeder first.');
+            return;
+        }
+
         $breakfastType = MenuType::where('name', 'Breakfast')->first();
         $lunchType = MenuType::where('name', 'Lunch')->first();
         $dinnerType = MenuType::where('name', 'Dinner')->first();
         $beverageType = MenuType::where('name', 'Beverages')->first();
         $dessertType = MenuType::where('name', 'Desserts')->first();
 
-        $menus = [
+        $menuTemplates = [
             // Breakfast menus
             [
                 'name' => 'Morning Special',
@@ -54,17 +63,6 @@ class MenuSeeder extends Seeder
                 'schedule_end_time' => '15:00:00',
                 'schedule_status' => true,
             ],
-            [
-                'name' => 'Set Lunch Menu',
-                'description' => 'Value set meals with appetizer, main, and drink',
-                'menu_type_id' => $lunchType?->id,
-                'status' => true,
-                'schedule_mode' => 'weekly',
-                'schedule_days' => json_encode(['monday', 'tuesday', 'wednesday', 'thursday', 'friday']),
-                'schedule_start_time' => '11:30:00',
-                'schedule_end_time' => '14:00:00',
-                'schedule_status' => true,
-            ],
             // Dinner menus
             [
                 'name' => 'Evening Dinner',
@@ -76,16 +74,6 @@ class MenuSeeder extends Seeder
                 'schedule_end_time' => '22:00:00',
                 'schedule_status' => true,
             ],
-            [
-                'name' => 'Chef\'s Special',
-                'description' => 'Exclusive dishes crafted by our head chef',
-                'menu_type_id' => $dinnerType?->id,
-                'status' => true,
-                'schedule_mode' => 'daily',
-                'schedule_start_time' => '18:00:00',
-                'schedule_end_time' => '21:00:00',
-                'schedule_status' => true,
-            ],
             // Beverage menus
             [
                 'name' => 'Drinks Menu',
@@ -93,16 +81,6 @@ class MenuSeeder extends Seeder
                 'menu_type_id' => $beverageType?->id,
                 'status' => true,
                 'schedule_mode' => 'always',
-                'schedule_status' => true,
-            ],
-            [
-                'name' => 'Happy Hour',
-                'description' => 'Special drink prices during happy hour',
-                'menu_type_id' => $beverageType?->id,
-                'status' => true,
-                'schedule_mode' => 'daily',
-                'schedule_start_time' => '16:00:00',
-                'schedule_end_time' => '19:00:00',
                 'schedule_status' => true,
             ],
             // Dessert menus
@@ -116,13 +94,28 @@ class MenuSeeder extends Seeder
             ],
         ];
 
-        foreach ($menus as $menu) {
-            if ($menu['menu_type_id']) {
-                Menu::firstOrCreate(
-                    ['name' => $menu['name']],
-                    array_merge($menu, ['uuid' => Str::uuid()])
-                );
+        $createdCount = 0;
+
+        // Create menus for each outlet
+        foreach ($outlets as $outlet) {
+            foreach ($menuTemplates as $template) {
+                if ($template['menu_type_id']) {
+                    $menuName = $template['name'] . ' - ' . $outlet->name;
+
+                    Menu::firstOrCreate(
+                        ['name' => $menuName, 'outlet_id' => $outlet->id],
+                        array_merge($template, [
+                            'uuid' => Str::uuid(),
+                            'outlet_id' => $outlet->id,
+                            'name' => $menuName,
+                        ])
+                    );
+
+                    $createdCount++;
+                }
             }
         }
+
+        $this->command->info("Menus seeded successfully. Created menus for {$outlets->count()} outlets.");
     }
 }

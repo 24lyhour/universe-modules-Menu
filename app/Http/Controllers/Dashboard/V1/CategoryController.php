@@ -16,6 +16,7 @@ use Modules\Menu\Http\Requests\Dashboard\V1\UpdateCategoryRequest;
 use Modules\Menu\Http\Resources\Dashboard\V1\CategoryResource;
 use Modules\Menu\Models\Category;
 use Modules\Menu\Models\Menu;
+use Modules\Product\Models\Product;
 
 class CategoryController extends Controller
 {
@@ -33,7 +34,7 @@ class CategoryController extends Controller
         $perPage = $request->input('per_page', 10);
         $filters = $request->only(['search', 'status']);
 
-        $query = Category::query();
+        $query = Category::withCount('products');
 
         if (!empty($filters['search'])) {
             $query->where('name', 'like', '%' . $filters['search'] . '%');
@@ -150,12 +151,11 @@ class CategoryController extends Controller
     /**
      * Toggle category status.
      */
-    public function toggleStatus(Request $request, Category $category): RedirectResponse
+    public function toggleStatus(Request $request, Category $category, \Modules\Menu\Actions\Dashboard\V1\ToggleCategoryStatusAction $toggleCategoryStatusAction): RedirectResponse
     {
-        $category->update([
-            'status' => $request->boolean('status'),
-        ]);
+        $toggleCategoryStatusAction->execute($category, $request->boolean('status'));
 
         return redirect()->back();
     }
+
 }

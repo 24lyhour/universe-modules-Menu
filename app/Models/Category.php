@@ -4,7 +4,10 @@ namespace Modules\Menu\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Modules\Menu\Database\Factories\CategoryFactory;
+use Modules\Product\Models\Product;
 
 class Category extends Model
 {
@@ -21,7 +24,6 @@ class Category extends Model
     protected $fillable = [
         'uuid',
         'menu_id',
-        'product_id',
         'name',
         'image_url',
         'description',
@@ -45,18 +47,22 @@ class Category extends Model
     }
 
     /**
-     * raltion to menu
+     * Belongs to menu.
      */
-    public function menu(){
-        return $this->hasMany(Menu::class);
+    public function menu(): BelongsTo
+    {
+        return $this->belongsTo(Menu::class);
     }
 
     /**
-     * reslation to the product
+     * Many-to-many relationship with products.
      */
-    public function product() 
+    public function products(): BelongsToMany
     {
-        return $this->hasMany(Product::class);
+        return $this->belongsToMany(Product::class, 'menu_category_products')
+            ->withPivot('price_override', 'sort_order', 'is_available')
+            ->withTimestamps()
+            ->orderByPivot('sort_order');
     }
 }
 

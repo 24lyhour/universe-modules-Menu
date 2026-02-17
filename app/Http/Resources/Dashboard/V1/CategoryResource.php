@@ -21,6 +21,7 @@ class CategoryResource extends JsonResource
             'image_url' => $this->image_url,
             'sort_order' => $this->sort_order,
             'status' => $this->status,
+            'products_count' => $this->whenCounted('products'),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

@@ -14,7 +14,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Plus, Layers, CheckCircle, XCircle, Search, Eye, Pencil, Trash2 } from 'lucide-vue-next';
+import { Plus, Layers, CheckCircle, XCircle, Search, Eye, Pencil, Trash2, Package } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 import type { CategoryIndexProps, Category } from '@menu/types';
 
@@ -41,6 +41,11 @@ const columns: TableColumn<Category>[] = [
         render: (category) => category.description || '-',
     },
     {
+        key: 'products_count',
+        label: 'Products',
+        render: (category) => (category.products_count ?? 0).toString(),
+    },
+    {
         key: 'sort_order',
         label: 'Sort Order',
         render: (category) => category.sort_order.toString(),
@@ -53,6 +58,11 @@ const columns: TableColumn<Category>[] = [
 ];
 
 const actions: TableAction<Category>[] = [
+    {
+        label: 'Products',
+        icon: Package,
+        onClick: (category) => router.visit(`/dashboard/categories/${category.id}/products/manage`),
+    },
     {
         label: 'View',
         icon: Eye,

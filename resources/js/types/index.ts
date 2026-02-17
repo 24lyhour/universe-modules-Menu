@@ -104,6 +104,7 @@ export interface Category {
     image_url: string | null;
     sort_order: number;
     status: boolean;
+    products_count?: number;
     created_at: string;
     updated_at: string;
 }

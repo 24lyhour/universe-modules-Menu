@@ -14,7 +14,12 @@ class GetCategoryProductsManageDataAction
     {
         $category->load('products');
 
+        // Get IDs of products already assigned to this category
+        $assignedProductIds = $category->products->pluck('id')->toArray();
+
+        // Get all active products EXCEPT those already assigned
         $allProducts = Product::where('status', 'active')
+            ->whereNotIn('id', $assignedProductIds)
             ->orderBy('name')
             ->get(['id', 'name', 'sku', 'price', 'images'])
             ->map(fn ($product) => [

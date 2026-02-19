@@ -14,6 +14,7 @@ export const categorySchema = z.object({
         .nullable(),
     menu_id: z.number().nullable().optional(),
     image_url: z.string().optional().nullable(),
+    product_type: z.enum(['phone', 'computer', 'tablet', 'accessory', 'other']).nullable().optional(),
     sort_order: z.number().min(0).default(0),
     status: z.boolean().default(true),
 });

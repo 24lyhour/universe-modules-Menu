@@ -14,7 +14,19 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import type { InertiaForm } from '@inertiajs/vue3';
-import type { CategoryFormData, MenuOption } from '@menu/types';
+import type { CategoryFormData, MenuOption, ProductType } from '@menu/types';
+
+// Product type options
+const productTypeOptions: { value: ProductType; label: string }[] = [
+    { value: 'phone', label: 'Phone' },
+    { value: 'computer', label: 'Computer' },
+    { value: 'tablet', label: 'Tablet' },
+    { value: 'accessory', label: 'Accessory' },
+    { value: 'other', label: 'Other' },
+];
+
+// Placeholder value for "None" option
+const NONE_VALUE = '__none__';
 
 interface Props {
     mode?: 'create' | 'edit';
@@ -52,6 +64,18 @@ const selectedMenu = computed({
             model.value.menu_id = parseInt(value, 10);
         } else {
             model.value.menu_id = null;
+        }
+    },
+});
+
+// Handle product type selection
+const selectedProductType = computed({
+    get: () => model.value.product_type ?? NONE_VALUE,
+    set: (value: string | number | boolean | bigint | Record<string, unknown> | null | undefined) => {
+        if (typeof value === 'string' && value !== '' && value !== NONE_VALUE) {
+            model.value.product_type = value as ProductType;
+        } else {
+            model.value.product_type = null;
         }
     },
 });
@@ -114,6 +138,33 @@ const selectedMenu = computed({
                     </Select>
                     <p v-if="model.errors.menu_id" class="text-sm text-destructive">
                         {{ model.errors.menu_id }}
+                    </p>
+                </div>
+
+                <div class="space-y-2">
+                    <Label for="product_type">Product Type</Label>
+                    <Select v-model="selectedProductType">
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select product type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem :value="NONE_VALUE">
+                                All Types
+                            </SelectItem>
+                            <SelectItem
+                                v-for="option in productTypeOptions"
+                                :key="option.value"
+                                :value="option.value"
+                            >
+                                {{ option.label }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <p class="text-xs text-muted-foreground">
+                        Products of this type will be filtered to this category
+                    </p>
+                    <p v-if="model.errors.product_type" class="text-sm text-destructive">
+                        {{ model.errors.product_type }}
                     </p>
                 </div>
 

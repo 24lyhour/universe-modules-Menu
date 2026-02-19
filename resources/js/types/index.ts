@@ -10,6 +10,8 @@ export interface Menu {
     menu_type_id: number | null;
     outlet_name: string | null;
     menu_type_name: string | null;
+    categories_count: number;
+    products_count: number;
     status: boolean;
     schedule_mode: string | null;
     schedule_days: string | null;
@@ -95,6 +97,8 @@ export interface MenuEditProps {
 }
 
 // Category Types
+export type ProductType = 'phone' | 'computer' | 'tablet' | 'accessory' | 'other';
+
 export interface Category {
     id: number;
     uuid: string;
@@ -102,6 +106,7 @@ export interface Category {
     description: string | null;
     menu_id: number | null;
     image_url: string | null;
+    product_type: ProductType | null;
     sort_order: number;
     status: boolean;
     products_count?: number;
@@ -125,6 +130,7 @@ export interface CategoryFormData {
     description: string;
     menu_id: number | null;
     image_url: string;
+    product_type: ProductType | null;
     sort_order: number;
     status: boolean;
 }
@@ -142,6 +148,7 @@ export interface CategoryIndexProps {
 
 export interface CategoryCreateProps {
     menus: MenuOption[];
+    selectedMenuId?: number | null;
 }
 
 export interface CategoryEditProps {
@@ -224,5 +231,9 @@ export interface MenuTypeEditProps {
 }
 
 export interface MenuTypeDeleteProps {
+    menuType: MenuType;
+}
+
+export interface MenuTypeShowProps {
     menuType: MenuType;
 }

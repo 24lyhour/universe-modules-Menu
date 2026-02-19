@@ -27,6 +27,7 @@ class Category extends Model
         'name',
         'image_url',
         'description',
+        'product_type',
         'sort_order',
         'status',
         'created_by',
@@ -59,7 +60,7 @@ class Category extends Model
      */
     public function products(): BelongsToMany
     {
-        return $this->belongsToMany(Product::class, 'menu_category_products')
+        return $this->belongsToMany(Product::class, 'menu_category_products', 'category_id', 'product_id')
             ->withPivot('price_override', 'sort_order', 'is_available')
             ->withTimestamps()
             ->orderByPivot('sort_order');

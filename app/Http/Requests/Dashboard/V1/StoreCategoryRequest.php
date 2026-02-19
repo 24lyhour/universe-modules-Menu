@@ -24,6 +24,7 @@ class StoreCategoryRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:1000'],
             'menu_id' => ['nullable', 'exists:menus,id'],
             'image_url' => ['nullable', 'string'],
+            'product_type' => ['nullable', 'string', 'in:phone,computer,tablet,accessory,other'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'status' => ['required', 'boolean'],
         ];

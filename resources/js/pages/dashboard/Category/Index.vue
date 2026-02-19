@@ -59,11 +59,6 @@ const columns: TableColumn<Category>[] = [
 
 const actions: TableAction<Category>[] = [
     {
-        label: 'Products',
-        icon: Package,
-        onClick: (category) => router.visit(`/dashboard/categories/${category.id}/products/manage`),
-    },
-    {
         label: 'View',
         icon: Eye,
         onClick: (category) => router.visit(`/dashboard/categories/${category.id}`),
@@ -74,10 +69,16 @@ const actions: TableAction<Category>[] = [
         onClick: (category) => router.visit(`/dashboard/categories/${category.id}/edit`),
     },
     {
+        label: 'Manage Products',
+        icon: Package,
+        onClick: (category) => router.visit(`/dashboard/categories/${category.id}/products/manage`),
+    },
+    {
         label: 'Delete',
         icon: Trash2,
         onClick: (category) => router.visit(`/dashboard/categories/${category.id}/delete`),
         variant: 'destructive',
+        separator: true,
     },
 ];
 

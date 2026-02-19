@@ -28,7 +28,6 @@ const form = useForm<CategoryFormData>({
     description: '',
     menu_id: props.selectedMenuId ?? null,
     image_url: '',
-    product_type: null,
     sort_order: 0,
     status: true,
 });
@@ -48,7 +47,6 @@ const getFormData = () => ({
     description: form.description || null,
     menu_id: form.menu_id,
     image_url: form.image_url || null,
-    product_type: form.product_type,
     sort_order: form.sort_order,
     status: form.status,
 });

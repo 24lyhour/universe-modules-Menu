@@ -35,6 +35,8 @@ interface Props {
     };
     allProducts: Product[];
     assignedProducts: AssignedProduct[];
+    returnTo?: string;
+    menuId?: number;
 }
 
 const props = defineProps<Props>();
@@ -164,7 +166,13 @@ const formatCurrency = (value: number) => {
 };
 
 const handleSubmit = () => {
-    form.post(`/dashboard/categories/${props.category.id}/products/sync`, {
+    // Build query string for return context
+    const params = new URLSearchParams();
+    if (props.returnTo) params.append('return_to', props.returnTo);
+    if (props.menuId) params.append('menu_id', String(props.menuId));
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+
+    form.post(`/dashboard/categories/${props.category.id}/products/sync${queryString}`, {
         onSuccess: () => {
             close();
             redirect();

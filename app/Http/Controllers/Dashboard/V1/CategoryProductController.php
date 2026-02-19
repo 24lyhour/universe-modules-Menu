@@ -22,12 +22,27 @@ class CategoryProductController extends Controller
     /**
      * Show modal for managing products in a category.
      */
-    public function manageProducts(Category $category): Modal
+    public function manageProducts(Request $request, Category $category): Modal
     {
         $data = $this->getCategoryProductsManageDataAction->execute($category);
+        $returnTo = $request->input('return_to');
+        $menuId = $request->input('menu_id');
+
+        // Determine base route based on where user came from
+        if ($returnTo === 'menu' && $menuId) {
+            $baseRoute = 'menu.menus.categories.manage';
+            $baseRouteParams = ['menu' => $menuId];
+        } else {
+            $baseRoute = 'menu.categories.index';
+            $baseRouteParams = [];
+        }
+
+        // Pass return info to the modal
+        $data['returnTo'] = $returnTo;
+        $data['menuId'] = $menuId ? (int) $menuId : null;
 
         return Inertia::modal('menu::dashboard/Category/ManageProducts', $data)
-            ->baseRoute('menu.categories.index');
+            ->baseRoute($baseRoute, $baseRouteParams);
     }
 
     /**
@@ -37,13 +52,23 @@ class CategoryProductController extends Controller
     {
         $this->syncCategoryProductsAction->execute($category, $request->all());
 
+        $returnTo = $request->input('return_to');
+        $menuId = $request->input('menu_id');
+
+        // Redirect based on where user came from
+        if ($returnTo === 'menu' && $menuId) {
+            return redirect()
+                ->route('menu.menus.categories.manage', ['menu' => $menuId])
+                ->with('success', 'Products updated successfully.');
+        }
+
         return redirect()
             ->route('menu.categories.index')
             ->with('success', 'Products updated successfully.');
     }
 
     /**
-     * Reorder products in a category.
+     * Reorder products for a category.
      */
     public function reorderProducts(Request $request, Category $category): RedirectResponse
     {

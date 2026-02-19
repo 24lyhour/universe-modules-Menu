@@ -70,13 +70,22 @@ class CategoryController extends Controller
     /**
      * Show form for creating a new category.
      */
-    public function create(): Modal
+    public function create(Request $request): Modal
     {
         $menus = Menu::where('status', true)->get(['id', 'name']);
+        $selectedMenuId = $request->input('menu_id');
+
+        // Determine base route based on where user came from
+        $baseRoute = $selectedMenuId
+            ? 'menu.menus.categories.manage'
+            : 'menu.categories.index';
+
+        $baseRouteParams = $selectedMenuId ? ['menu' => $selectedMenuId] : [];
 
         return Inertia::modal('menu::dashboard/Category/Create', [
             'menus' => $menus,
-        ])->baseRoute('menu.categories.index');
+            'selectedMenuId' => $selectedMenuId ? (int) $selectedMenuId : null,
+        ])->baseRoute($baseRoute, $baseRouteParams);
     }
 
     /**
@@ -85,6 +94,14 @@ class CategoryController extends Controller
     public function store(StoreCategoryRequest $request): RedirectResponse
     {
         $this->createCategoryAction->execute($request->validated());
+
+        // Redirect back to ManageCategories if menu_id is provided
+        $menuId = $request->input('menu_id');
+        if ($menuId) {
+            return redirect()
+                ->route('menu.menus.categories.manage', ['menu' => $menuId])
+                ->with('success', 'Category created successfully.');
+        }
 
         return redirect()
             ->route('menu.categories.index')

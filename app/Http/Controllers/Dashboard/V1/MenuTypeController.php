@@ -13,7 +13,6 @@ use Modules\Menu\Actions\Dashboard\V1\DeleteMenuTypeAction;
 use Modules\Menu\Actions\Dashboard\V1\GetMenuTypeCreateDataAction;
 use Modules\Menu\Actions\Dashboard\V1\GetMenuTypeEditDataAction;
 use Modules\Menu\Actions\Dashboard\V1\GetMenuTypeIndexDataAction;
-use Modules\Menu\Actions\Dashboard\V1\ToggleMenuTypeStatusAction;
 use Modules\Menu\Actions\Dashboard\V1\UpdateMenuTypeAction;
 use Modules\Menu\Http\Requests\Dashboard\V1\StoreMenuTypeRequest;
 use Modules\Menu\Http\Requests\Dashboard\V1\UpdateMenuTypeRequest;
@@ -29,7 +28,6 @@ class MenuTypeController extends Controller
         protected CreateMenuTypeAction $createMenuTypeAction,
         protected UpdateMenuTypeAction $updateMenuTypeAction,
         protected DeleteMenuTypeAction $deleteMenuTypeAction,
-        protected ToggleMenuTypeStatusAction $toggleMenuTypeStatusAction,
     ) {}
 
     /**
@@ -121,15 +119,5 @@ class MenuTypeController extends Controller
         return redirect()
             ->route('menu.menu-types.index')
             ->with('success', 'Menu type deleted successfully.');
-    }
-
-    /**
-     * Toggle menu type status.
-     */
-    public function toggleStatus(Request $request, MenuType $menuType): RedirectResponse
-    {
-        $this->toggleMenuTypeStatusAction->execute($menuType, $request->boolean('status'));
-
-        return redirect()->back();
     }
 }

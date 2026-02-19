@@ -146,17 +146,5 @@ class MenuController extends Controller
             ->route('menu.menus.index')
             ->with('success', 'Menu deleted successfully.');
     }
-
-    /**
-     * Toggle menu status.
-     */
-    public function toggleStatus(Request $request, Menu $menu): RedirectResponse
-    {
-        $menu->update([
-            'status' => $request->boolean('status'),
-        ]);
-
-        return redirect()->back();
-    }
 }
 

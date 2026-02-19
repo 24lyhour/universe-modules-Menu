@@ -14,7 +14,6 @@ use Modules\Menu\Actions\Dashboard\V1\GetCategoryCreateDataAction;
 use Modules\Menu\Actions\Dashboard\V1\GetCategoryEditDataAction;
 use Modules\Menu\Actions\Dashboard\V1\GetCategoryIndexDataAction;
 use Modules\Menu\Actions\Dashboard\V1\GetCategoryShowDataAction;
-use Modules\Menu\Actions\Dashboard\V1\ToggleCategoryStatusAction;
 use Modules\Menu\Actions\Dashboard\V1\UpdateCategoryAction;
 use Modules\Menu\Http\Requests\Dashboard\V1\StoreCategoryRequest;
 use Modules\Menu\Http\Requests\Dashboard\V1\UpdateCategoryRequest;
@@ -31,7 +30,6 @@ class CategoryController extends Controller
         protected CreateCategoryAction $createCategoryAction,
         protected UpdateCategoryAction $updateCategoryAction,
         protected DeleteCategoryAction $deleteCategoryAction,
-        protected ToggleCategoryStatusAction $toggleCategoryStatusAction,
     ) {}
 
     /**
@@ -137,15 +135,5 @@ class CategoryController extends Controller
         return redirect()
             ->route('menu.categories.index')
             ->with('success', 'Category deleted successfully.');
-    }
-
-    /**
-     * Toggle category status.
-     */
-    public function toggleStatus(Request $request, Category $category): RedirectResponse
-    {
-        $this->toggleCategoryStatusAction->execute($category, $request->boolean('status'));
-
-        return redirect()->back();
     }
 }

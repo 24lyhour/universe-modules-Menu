@@ -13,7 +13,9 @@ class MenuService
      */
     public function paginate(int $perPage = 10, array $filters = []): LengthAwarePaginator
     {
-        $query = Menu::with(['outlet', 'menuType'])->withCount('categories');
+        $query = Menu::with(['outlet', 'menuType'])
+            ->withCount('categories')
+            ->selectRaw('menus.*, (SELECT COUNT(*) FROM menu_category_products WHERE menu_category_products.category_id IN (SELECT id FROM menu_categories WHERE menu_categories.menu_id = menus.id)) as products_count');
 
         // Search filter
         if (!empty($filters['search'])) {

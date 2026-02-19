@@ -47,7 +47,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                     </div>
                 </div>
                 <Button as-child>
-                    <Link :href="`/dashboard/menus/${menu.id}/categories`">
+                    <Link :href="`/dashboard/menus/${menu.id}/categories/manage`">
                         <Layers class="mr-2 h-4 w-4" />
                         Manage Categories
                     </Link>

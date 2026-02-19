@@ -11,7 +11,7 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->name('menu.')->gro
     Route::resource('menus', MenuController::class)->names('menus');
     Route::get('menus/{menu}/delete', [MenuController::class, 'confirmDelete'])->name('menus.confirm-delete');
     Route::put('menus/{menu}/toggle-status', [MenuController::class, 'toggleStatus'])->name('menus.toggle-status');
-    Route::get('menus/{menu}/categories', [MenuController::class, 'categories'])->name('menus.categories');
+    Route::get('menus/{menu}/categories/manage', [MenuController::class, 'categories'])->name('menus.categories.manage');
     Route::post('menus/{menu}/categories/reorder', [MenuController::class, 'reorderCategories'])->name('menus.categories.reorder');
 
     // Categories

@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
+import { VueDraggable } from 'vue-draggable-plus';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { TableReusable, StatsCard } from '@/components/shared';
-import type { TableColumn, TableAction, PaginationData } from '@/components/shared';
+import { StatsCard } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Select,
     SelectContent,
@@ -14,138 +16,177 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, Plus, Layers, CheckCircle, XCircle, Search, Eye, Pencil, Trash2, Package, GripVertical } from 'lucide-vue-next';
-import { Badge } from '@/components/ui/badge';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+    ArrowLeft,
+    Plus,
+    Layers,
+    CheckCircle,
+    XCircle,
+    Search,
+    Eye,
+    Pencil,
+    Trash2,
+    Package,
+    GripVertical,
+    MoreHorizontal,
+    Save,
+    ChevronDown,
+    ChevronRight,
+    FolderPlus,
+} from 'lucide-vue-next';
+import { toast } from 'vue-sonner';
 import type { BreadcrumbItem } from '@/types';
+import type { Menu, CategoryFilters, CategoryStats } from '@menu/types';
 
-interface Menu {
+interface CategoryProduct {
     id: number;
     name: string;
+    sku: string | null;
+    price: number;
+    sale_price: number | null;
+    status: string;
+    image_url: string | null;
+    pivot: {
+        price_override: number | null;
+        sort_order: number;
+        is_available: boolean;
+    };
 }
 
-interface Category {
+interface CategoryWithProducts {
     id: number;
+    uuid: string;
     name: string;
-    description?: string;
-    status: boolean;
+    description: string | null;
+    image_url: string | null;
     sort_order: number;
-    products_count?: number;
+    status: boolean;
+    products_count: number;
+    products: CategoryProduct[];
 }
 
-interface Props {
+interface ManageCategoriesProps {
     menu: Menu;
-    categories: {
-        data: Category[];
-        meta: {
-            current_page: number;
-            last_page: number;
-            per_page: number;
-            total: number;
-        };
-    };
-    filters: {
-        search?: string;
-        status?: string;
-    };
-    stats: {
-        total: number;
-        active: number;
-        inactive: number;
-    };
+    categories: CategoryWithProducts[];
+    filters: CategoryFilters;
+    stats: CategoryStats;
 }
 
-const props = defineProps<Props>();
+const props = defineProps<ManageCategoriesProps>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Menus', href: '/dashboard/menus' },
     { title: props.menu.name, href: `/dashboard/menus/${props.menu.id}` },
-    { title: 'Categories', href: `/dashboard/menus/${props.menu.id}/categories` },
+    { title: 'Manage Categories', href: `/dashboard/menus/${props.menu.id}/categories/manage` },
 ];
 
 const search = ref(props.filters.search || '');
 const statusFilter = ref(props.filters.status || 'all');
+const isReordering = ref(false);
+const isSaving = ref(false);
 
-const columns: TableColumn<Category>[] = [
-    {
-        key: 'sort_order',
-        label: '',
-        render: () => '',
-    },
-    {
-        key: 'name',
-        label: 'Category Name',
-        render: (category) => category.name,
-    },
-    {
-        key: 'products_count',
-        label: 'Products',
-        render: (category) => (category.products_count ?? 0).toString(),
-    },
-    {
-        key: 'status',
-        label: 'Status',
-        render: (category) => category.status ? 'Active' : 'Inactive',
-    },
-];
+// Track which categories are expanded (using object for reactivity)
+const expandedCategories = ref<Record<number, boolean>>({});
 
-const actions: TableAction<Category>[] = [
-    {
-        label: 'Products',
-        icon: Package,
-        onClick: (category) => router.visit(`/dashboard/categories/${category.id}/products/manage`),
-    },
-    {
-        label: 'View',
-        icon: Eye,
-        onClick: (category) => router.visit(`/dashboard/categories/${category.id}`),
-    },
-    {
-        label: 'Edit',
-        icon: Pencil,
-        onClick: (category) => router.visit(`/dashboard/categories/${category.id}/edit`),
-    },
-];
+// Local copy of categories for drag-drop
+const localCategories = ref<CategoryWithProducts[]>([...props.categories]);
 
-const pagination = computed<PaginationData>(() => ({
-    current_page: props.categories.meta.current_page,
-    last_page: props.categories.meta.last_page,
-    per_page: props.categories.meta.per_page,
-    total: props.categories.meta.total,
-}));
+// Watch for prop changes
+watch(() => props.categories, (newData) => {
+    localCategories.value = [...newData];
+});
 
-const handlePageChange = (page: number) => {
-    router.get(`/dashboard/menus/${props.menu.id}/categories`, {
-        page,
-        per_page: pagination.value.per_page,
-        search: search.value || undefined,
-        status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
-    }, { preserveState: true });
+const isExpanded = (categoryId: number): boolean => {
+    return expandedCategories.value[categoryId] ?? false;
 };
 
-const handlePerPageChange = (perPage: number) => {
-    router.get(`/dashboard/menus/${props.menu.id}/categories`, {
-        per_page: perPage,
-        search: search.value || undefined,
-        status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
-    }, { preserveState: true });
+const setExpanded = (categoryId: number, value: boolean) => {
+    expandedCategories.value[categoryId] = value;
+};
+
+// Track product reordering state per category
+const productReordering = ref<Record<number, boolean>>({});
+const productSaving = ref<Record<number, boolean>>({});
+
+const handleProductDragEnd = (categoryId: number) => {
+    productReordering.value[categoryId] = true;
+};
+
+const saveProductOrder = (categoryId: number) => {
+    const category = localCategories.value.find(c => c.id === categoryId);
+    if (!category) {
+        return;
+    }
+
+    productSaving.value[categoryId] = true;
+    const reorderedProducts = category.products.map((product, index) => ({
+        id: product.id,
+        sort_order: index + 1,
+    }));
+
+    router.post(`/dashboard/categories/${categoryId}/products/reorder`, {
+        products: reorderedProducts,
+    }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            productReordering.value[categoryId] = false;
+            toast.success('Products reordered successfully');
+        },
+        onError: () => {
+            toast.error('Failed to save product order');
+        },
+        onFinish: () => {
+            productSaving.value[categoryId] = false;
+        },
+    });
+};
+
+const cancelProductReorder = (categoryId: number) => {
+    // Reset products to original order
+    const category = localCategories.value.find(c => c.id === categoryId);
+    const originalCategory = props.categories.find(c => c.id === categoryId);
+    if (category && originalCategory) {
+        category.products = [...originalCategory.products];
+    }
+    productReordering.value[categoryId] = false;
 };
 
 const handleSearch = () => {
-    router.get(`/dashboard/menus/${props.menu.id}/categories`, {
+    router.get(`/dashboard/menus/${props.menu.id}/categories/manage`, {
         search: search.value || undefined,
         status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
     }, { preserveState: true });
 };
 
 watch(statusFilter, () => {
-    router.get(`/dashboard/menus/${props.menu.id}/categories`, {
+    router.get(`/dashboard/menus/${props.menu.id}/categories/manage`, {
         search: search.value || undefined,
         status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
     }, { preserveState: true });
 });
 
-const handleStatusToggle = (category: Category, newStatus: boolean) => {
+const handleCreate = () => {
+    router.visit(`/dashboard/categories/create?menu_id=${props.menu.id}`);
+};
+
+const handleAssignExisting = () => {
+    router.visit(`/dashboard/menus/${props.menu.id}/categories/assign`);
+};
+
+const handleStatusToggle = (category: CategoryWithProducts, newStatus: boolean) => {
     router.put(`/dashboard/categories/${category.id}/toggle-status`, {
         status: newStatus,
     }, {
@@ -153,23 +194,94 @@ const handleStatusToggle = (category: Category, newStatus: boolean) => {
         preserveScroll: true,
     });
 };
+
+const handleDragEnd = () => {
+    isReordering.value = true;
+};
+
+const saveOrder = () => {
+    isSaving.value = true;
+    const reorderedCategories = localCategories.value.map((cat, index) => ({
+        id: cat.id,
+        sort_order: index + 1,
+    }));
+
+    router.post(`/dashboard/menus/${props.menu.id}/categories/reorder`, {
+        categories: reorderedCategories,
+    }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            isReordering.value = false;
+            toast.success('Categories reordered successfully');
+        },
+        onFinish: () => {
+            isSaving.value = false;
+        },
+    });
+};
+
+const cancelReorder = () => {
+    localCategories.value = [...props.categories];
+    isReordering.value = false;
+};
+
+const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+    }).format(value);
+};
+
+const getStatusVariant = (status: string) => {
+    switch (status) {
+        case 'active':
+            return 'default';
+        case 'inactive':
+            return 'secondary';
+        default:
+            return 'outline';
+    }
+};
 </script>
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Head :title="`${menu.name} - Categories`" />
+        <Head :title="`${menu.name} - Manage Categories`" />
 
         <div class="flex h-full flex-1 flex-col gap-6 p-6">
             <!-- Header -->
-            <div class="flex items-center gap-4">
-                <Button variant="ghost" size="icon" as-child>
-                    <Link :href="`/dashboard/menus/${menu.id}`">
-                        <ArrowLeft class="h-4 w-4" />
-                    </Link>
-                </Button>
-                <div>
-                    <h1 class="text-2xl font-bold tracking-tight">{{ menu.name }} - Categories</h1>
-                    <p class="text-muted-foreground">Manage categories for this menu</p>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <Button variant="outline" size="icon" as-child>
+                        <Link :href="`/dashboard/menus/${menu.id}`">
+                            <ArrowLeft class="h-4 w-4" />
+                        </Link>
+                    </Button>
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight">{{ menu.name }} - Manage Categories</h1>
+                        <p class="text-muted-foreground">Manage categories and products for this menu</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div v-if="isReordering" class="flex items-center gap-2">
+                        <Button variant="outline" @click="cancelReorder" :disabled="isSaving">
+                            Cancel
+                        </Button>
+                        <Button @click="saveOrder" :disabled="isSaving">
+                            <Save class="mr-2 h-4 w-4" />
+                            {{ isSaving ? 'Saving...' : 'Save Order' }}
+                        </Button>
+                    </div>
+                    <template v-else>
+                        <Button variant="outline" @click="handleAssignExisting">
+                            <FolderPlus class="mr-2 h-4 w-4" />
+                            Add Existing
+                        </Button>
+                        <Button @click="handleCreate">
+                            <Plus class="mr-2 h-4 w-4" />
+                            Add Category
+                        </Button>
+                    </template>
                 </div>
             </div>
 
@@ -177,99 +289,298 @@ const handleStatusToggle = (category: Category, newStatus: boolean) => {
             <div class="grid gap-4 md:grid-cols-3">
                 <StatsCard
                     title="Total Categories"
-                    :value="stats.total"
+                    :value="props.stats.total"
                     :icon="Layers"
                 />
                 <StatsCard
                     title="Active"
-                    :value="stats.active"
+                    :value="props.stats.active"
                     :icon="CheckCircle"
                     variant="success"
                 />
                 <StatsCard
                     title="Inactive"
-                    :value="stats.inactive"
+                    :value="props.stats.inactive"
                     :icon="XCircle"
                     variant="warning"
                 />
             </div>
 
             <!-- Main Content -->
-            <div class="flex flex-col gap-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-lg font-semibold">Categories</h2>
-                        <p class="text-sm text-muted-foreground">Categories assigned to this menu</p>
-                    </div>
-                </div>
-
-                <!-- Filters -->
-                <div class="flex items-center gap-4">
-                    <div class="relative flex-1 max-w-sm">
-                        <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            v-model="search"
-                            placeholder="Search categories..."
-                            class="pl-9"
-                            @keyup.enter="handleSearch"
-                        />
-                    </div>
-                    <Select v-model="statusFilter">
-                        <SelectTrigger class="w-[150px]">
-                            <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Status</SelectItem>
-                            <SelectItem value="1">Active</SelectItem>
-                            <SelectItem value="0">Inactive</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <!-- Table -->
-                <TableReusable
-                    :data="categories.data"
-                    :columns="columns"
-                    :actions="actions"
-                    :pagination="pagination"
-                    :searchable="false"
-                    @page-change="handlePageChange"
-                    @per-page-change="handlePerPageChange"
-                >
-                    <template #cell-sort_order>
-                        <div class="flex items-center text-muted-foreground cursor-grab">
-                            <GripVertical class="h-4 w-4" />
+            <Card>
+                <CardHeader>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Categories & Products</CardTitle>
+                            <CardDescription>Click on a category to view its products. Drag to reorder categories.</CardDescription>
                         </div>
-                    </template>
+                        <!-- Filters -->
+                        <div class="flex items-center gap-4">
+                            <div class="relative w-64">
+                                <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    v-model="search"
+                                    placeholder="Search categories..."
+                                    class="pl-9"
+                                    @keyup.enter="handleSearch"
+                                />
+                            </div>
+                            <Select v-model="statusFilter">
+                                <SelectTrigger class="w-[130px]">
+                                    <SelectValue placeholder="Status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Status</SelectItem>
+                                    <SelectItem value="1">Active</SelectItem>
+                                    <SelectItem value="0">Inactive</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <!-- Empty State -->
+                    <div v-if="localCategories.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
+                        <Layers class="h-12 w-12 text-muted-foreground mb-4" />
+                        <h3 class="text-lg font-medium">No categories yet</h3>
+                        <p class="text-sm text-muted-foreground mb-4">
+                            This menu doesn't have any categories.
+                        </p>
+                        <Button @click="handleCreate">
+                            <Plus class="mr-2 h-4 w-4" />
+                            Add Category
+                        </Button>
+                    </div>
 
-                    <template #cell-products_count="{ item }">
-                        <Link
-                            :href="`/dashboard/categories/${item.id}/products/manage`"
-                            class="inline-block"
+                    <!-- Draggable List with Collapsible Products -->
+                    <VueDraggable
+                        v-else
+                        v-model="localCategories"
+                        :animation="200"
+                        handle=".drag-handle"
+                        ghost-class="opacity-50"
+                        @end="handleDragEnd"
+                        class="space-y-3"
+                    >
+                        <Collapsible
+                            v-for="category in localCategories"
+                            :key="category.id"
+                            :open="isExpanded(category.id)"
+                            @update:open="(value: boolean) => setExpanded(category.id, value)"
+                            class="rounded-lg border bg-card"
                         >
-                            <Badge
-                                :variant="(item.products_count ?? 0) > 0 ? 'default' : 'secondary'"
-                                class="cursor-pointer"
-                            >
-                                <Package class="mr-1 h-3 w-3" />
-                                {{ item.products_count ?? 0 }}
-                            </Badge>
-                        </Link>
-                    </template>
+                            <!-- Category Header -->
+                            <div class="flex items-center gap-4 p-4">
+                                <!-- Drag Handle -->
+                                <div class="drag-handle cursor-grab active:cursor-grabbing">
+                                    <GripVertical class="h-5 w-5 text-muted-foreground" />
+                                </div>
 
-                    <template #cell-status="{ item }">
-                        <div class="flex items-center gap-2" @click.stop>
-                            <Switch
-                                :model-value="item.status"
-                                @update:model-value="handleStatusToggle(item, $event)"
-                            />
-                            <span class="text-sm text-muted-foreground">
-                                {{ item.status ? 'Active' : 'Inactive' }}
-                            </span>
-                        </div>
-                    </template>
-                </TableReusable>
-            </div>
+                                <!-- Expand/Collapse Button -->
+                                <CollapsibleTrigger as-child>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        class="h-8 w-8"
+                                    >
+                                        <ChevronDown
+                                            v-if="isExpanded(category.id)"
+                                            class="h-4 w-4"
+                                        />
+                                        <ChevronRight v-else class="h-4 w-4" />
+                                    </Button>
+                                </CollapsibleTrigger>
+
+                                <!-- Category Image -->
+                                <div class="h-12 w-12 rounded-lg bg-muted overflow-hidden shrink-0">
+                                    <img
+                                        v-if="category.image_url"
+                                        :src="category.image_url"
+                                        :alt="category.name"
+                                        class="h-full w-full object-cover"
+                                    />
+                                    <div v-else class="h-full w-full flex items-center justify-center">
+                                        <Layers class="h-6 w-6 text-muted-foreground" />
+                                    </div>
+                                </div>
+
+                                <!-- Category Info -->
+                                <div class="flex-1 min-w-0 cursor-pointer" @click="setExpanded(category.id, !isExpanded(category.id))">
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="font-medium truncate">{{ category.name }}</h3>
+                                        <Badge variant="secondary" class="text-xs">
+                                            {{ category.products_count ?? 0 }} products
+                                        </Badge>
+                                    </div>
+                                    <p v-if="category.description" class="text-sm text-muted-foreground truncate">
+                                        {{ category.description }}
+                                    </p>
+                                </div>
+
+                                <!-- Status Toggle -->
+                                <div class="flex items-center gap-2" @click.stop>
+                                    <Switch
+                                        :model-value="category.status"
+                                        @update:model-value="handleStatusToggle(category, $event)"
+                                    />
+                                    <span class="text-sm text-muted-foreground w-16">
+                                        {{ category.status ? 'Active' : 'Inactive' }}
+                                    </span>
+                                </div>
+
+                                <!-- Actions Menu -->
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger as-child>
+                                        <Button variant="ghost" size="icon">
+                                            <MoreHorizontal class="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem @click="router.visit(`/dashboard/categories/${category.id}/products/manage?return_to=menu&menu_id=${menu.id}`)">
+                                            <Package class="mr-2 h-4 w-4" />
+                                            Manage Products
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem @click="router.visit(`/dashboard/categories/${category.id}`)">
+                                            <Eye class="mr-2 h-4 w-4" />
+                                            View
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem @click="router.visit(`/dashboard/categories/${category.id}/edit`)">
+                                            <Pencil class="mr-2 h-4 w-4" />
+                                            Edit
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem
+                                            class="text-destructive"
+                                            @click="router.visit(`/dashboard/categories/${category.id}/delete`)"
+                                        >
+                                            <Trash2 class="mr-2 h-4 w-4" />
+                                            Delete
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+
+                            <!-- Products List (Collapsible) -->
+                            <CollapsibleContent>
+                                <div class="border-t px-4 py-3 bg-muted/30">
+                                    <!-- Products Header with Save/Cancel -->
+                                    <div v-if="category.products.length > 0" class="flex items-center justify-between mb-3">
+                                        <span class="text-sm font-medium text-muted-foreground">
+                                            {{ category.products.length }} product{{ category.products.length !== 1 ? 's' : '' }}
+                                        </span>
+                                        <div v-if="productReordering[category.id]" class="flex items-center gap-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                @click="cancelProductReorder(category.id)"
+                                                :disabled="productSaving[category.id]"
+                                            >
+                                                Cancel
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                @click="saveProductOrder(category.id)"
+                                                :disabled="productSaving[category.id]"
+                                            >
+                                                <Save class="mr-1 h-3 w-3" />
+                                                {{ productSaving[category.id] ? 'Saving...' : 'Save' }}
+                                            </Button>
+                                        </div>
+                                        <Button
+                                            v-else
+                                            variant="outline"
+                                            size="sm"
+                                            @click="router.visit(`/dashboard/categories/${category.id}/products/manage?return_to=menu&menu_id=${menu.id}`)"
+                                        >
+                                            <Plus class="mr-1 h-3 w-3" />
+                                            Manage
+                                        </Button>
+                                    </div>
+
+                                    <div v-if="category.products.length === 0" class="text-center py-4 text-muted-foreground text-sm">
+                                        No products in this category.
+                                        <Button
+                                            variant="link"
+                                            class="px-1"
+                                            @click="router.visit(`/dashboard/categories/${category.id}/products/manage?return_to=menu&menu_id=${menu.id}`)"
+                                        >
+                                            Add products
+                                        </Button>
+                                    </div>
+
+                                    <VueDraggable
+                                        v-else
+                                        v-model="category.products"
+                                        :animation="200"
+                                        handle=".product-drag-handle"
+                                        ghost-class="opacity-50"
+                                        @end="handleProductDragEnd(category.id)"
+                                        class="space-y-2"
+                                    >
+                                        <div
+                                            v-for="product in category.products"
+                                            :key="product.id"
+                                            class="flex items-center gap-3 p-3 rounded-lg bg-background border"
+                                        >
+                                            <!-- Drag Handle -->
+                                            <div class="product-drag-handle cursor-grab active:cursor-grabbing">
+                                                <GripVertical class="h-4 w-4 text-muted-foreground" />
+                                            </div>
+
+                                            <!-- Product Image -->
+                                            <div class="h-10 w-10 rounded-lg bg-muted overflow-hidden shrink-0">
+                                                <img
+                                                    v-if="product.image_url"
+                                                    :src="product.image_url"
+                                                    :alt="product.name"
+                                                    class="h-full w-full object-cover"
+                                                />
+                                                <div v-else class="h-full w-full flex items-center justify-center">
+                                                    <Package class="h-5 w-5 text-muted-foreground" />
+                                                </div>
+                                            </div>
+
+                                            <!-- Product Info -->
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="font-medium text-sm truncate">{{ product.name }}</span>
+                                                    <Badge :variant="getStatusVariant(product.status)" class="text-xs">
+                                                        {{ product.status }}
+                                                    </Badge>
+                                                </div>
+                                                <div class="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+                                                    <code v-if="product.sku" class="rounded bg-muted px-1.5 py-0.5 font-mono">
+                                                        {{ product.sku }}
+                                                    </code>
+                                                    <span v-if="product.sale_price" class="text-green-600">
+                                                        {{ formatCurrency(product.sale_price) }}
+                                                        <span class="line-through text-muted-foreground ml-1">{{ formatCurrency(product.price) }}</span>
+                                                    </span>
+                                                    <span v-else>{{ formatCurrency(product.price) }}</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Override Price -->
+                                            <div class="text-right text-sm">
+                                                <span v-if="product.pivot.price_override" class="font-medium text-blue-600">
+                                                    {{ formatCurrency(product.pivot.price_override) }}
+                                                </span>
+                                                <span v-else class="text-muted-foreground">-</span>
+                                            </div>
+
+                                            <!-- Available Status -->
+                                            <div class="flex items-center gap-1">
+                                                <CheckCircle v-if="product.pivot.is_available" class="h-4 w-4 text-green-600" />
+                                                <XCircle v-else class="h-4 w-4 text-red-500" />
+                                            </div>
+                                        </div>
+                                    </VueDraggable>
+                                </div>
+                            </CollapsibleContent>
+                        </Collapsible>
+                    </VueDraggable>
+                </CardContent>
+            </Card>
         </div>
     </AppLayout>
 </template>

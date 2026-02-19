@@ -14,9 +14,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Plus, UtensilsCrossed, CheckCircle, XCircle, Search, Eye, Pencil, Trash2, Layers } from 'lucide-vue-next';
 import { Badge } from '@/components/ui/badge';
-import { Link } from '@inertiajs/vue3';
+import { Plus, UtensilsCrossed, CheckCircle, XCircle, Search, Eye, Pencil, Trash2, Layers, FolderTree, Package, ExternalLink } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 import type { MenuIndexProps, Menu } from '@menu/types';
 
@@ -49,7 +48,12 @@ const columns: TableColumn<Menu>[] = [
     {
         key: 'categories_count',
         label: 'Categories',
-        render: (menu) => (menu.categories_count ?? 0).toString(),
+        render: (menu) => String(menu.categories_count),
+    },
+    {
+        key: 'products_count',
+        label: 'Products',
+        render: (menu) => String(menu.products_count),
     },
     {
         key: 'status',
@@ -59,11 +63,6 @@ const columns: TableColumn<Menu>[] = [
 ];
 
 const actions: TableAction<Menu>[] = [
-    {
-        label: 'Categories',
-        icon: Layers,
-        onClick: (menu) => router.visit(`/dashboard/menus/${menu.id}/categories`),
-    },
     {
         label: 'View',
         icon: Eye,
@@ -75,10 +74,16 @@ const actions: TableAction<Menu>[] = [
         onClick: (menu) => router.visit(`/dashboard/menus/${menu.id}/edit`),
     },
     {
+        label: 'Manage Categories',
+        icon: Layers,
+        onClick: (menu) => router.visit(`/dashboard/menus/${menu.id}/categories/manage`),
+    },
+    {
         label: 'Delete',
         icon: Trash2,
         onClick: (menu) => router.visit(`/dashboard/menus/${menu.id}/delete`),
         variant: 'destructive',
+        separator: true,
     },
 ];
 
@@ -212,20 +217,27 @@ const handleStatusToggle = (menu: Menu, newStatus: boolean) => {
                     @per-page-change="handlePerPageChange"
                 >
                     <template #cell-categories_count="{ item }">
-                        <Link
-                            :href="`/dashboard/menus/${item.id}/categories`"
-                            class="inline-block"
+                        <Badge
+                            variant="secondary"
+                            class="gap-1.5 cursor-pointer hover:bg-secondary/80 transition-colors"
+                            @click.stop="router.visit(`/dashboard/menus/${item.id}/categories/manage`)"
                         >
-                            <Badge
-                                :variant="(item.categories_count ?? 0) > 0 ? 'default' : 'secondary'"
-                                class="cursor-pointer"
-                            >
-                                <Layers class="mr-1 h-3 w-3" />
-                                {{ item.categories_count ?? 0 }}
-                            </Badge>
-                        </Link>
+                            <FolderTree class="h-3 w-3" />
+                            {{ item.categories_count }}
+                            <ExternalLink class="h-3 w-3 opacity-50" />
+                        </Badge>
                     </template>
-
+                    <template #cell-products_count="{ item }">
+                        <Badge
+                            variant="outline"
+                            class="gap-1.5 cursor-pointer hover:bg-muted transition-colors"
+                            @click.stop="router.visit(`/dashboard/menus/${item.id}/categories/manage`)"
+                        >
+                            <Package class="h-3 w-3" />
+                            {{ item.products_count }}
+                            <ExternalLink class="h-3 w-3 opacity-50" />
+                        </Badge>
+                    </template>
                     <template #cell-status="{ item }">
                         <div class="flex items-center gap-2" @click.stop>
                             <Switch

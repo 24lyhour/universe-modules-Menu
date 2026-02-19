@@ -23,6 +23,7 @@ class MenuResource extends JsonResource
             'outlet_name' => $this->whenLoaded('outlet', fn() => $this->outlet?->name),
             'menu_type_name' => $this->whenLoaded('menuType', fn() => $this->menuType?->name),
             'categories_count' => $this->categories_count ?? 0,
+            'products_count' => $this->products_count ?? 0,
             'status' => $this->status,
             'schedule_mode' => $this->schedule_mode,
             'schedule_days' => $this->schedule_days,

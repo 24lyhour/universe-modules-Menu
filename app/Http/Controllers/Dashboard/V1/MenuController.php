@@ -14,6 +14,8 @@ use Modules\Menu\Actions\Dashboard\V1\UpdateMenuAction;
 use Modules\Menu\Http\Requests\Dashboard\V1\StoreMenuRequest;
 use Modules\Menu\Http\Requests\Dashboard\V1\UpdateMenuRequest;
 use Modules\Menu\Http\Resources\Dashboard\V1\MenuResource;
+use Modules\Menu\Http\Resources\Dashboard\V1\CategoryResource;
+use Modules\Menu\Models\Category;
 use Modules\Menu\Models\Menu;
 use Modules\Menu\Models\MenuType;
 use Modules\Menu\Services\MenuService;
@@ -152,5 +154,67 @@ class MenuController extends Controller
         ]);
 
         return redirect()->back();
+    }
+
+    /**
+     * Display categories for a specific menu.
+     */
+    public function categories(Request $request, Menu $menu): Response
+    {
+        $perPage = $request->input('per_page', 10);
+        $filters = $request->only(['search', 'status']);
+
+        $query = Category::where('menu_id', $menu->id)->withCount('products');
+
+        if (!empty($filters['search'])) {
+            $query->where('name', 'like', '%' . $filters['search'] . '%');
+        }
+
+        if (!empty($filters['status']) && $filters['status'] !== 'all') {
+            $query->where('status', $filters['status'] === '1' || $filters['status'] === 'active');
+        }
+
+        $categories = $query->latest()->paginate($perPage);
+
+        $stats = [
+            'total' => Category::where('menu_id', $menu->id)->count(),
+            'active' => Category::where('menu_id', $menu->id)->where('status', true)->count(),
+            'inactive' => Category::where('menu_id', $menu->id)->where('status', false)->count(),
+        ];
+
+        return Inertia::render('menu::dashboard/Menu/Categories', [
+            'menu' => (new MenuResource($menu))->resolve(),
+            'categories' => [
+                'data' => CategoryResource::collection($categories)->resolve(),
+                'meta' => [
+                    'current_page' => $categories->currentPage(),
+                    'last_page' => $categories->lastPage(),
+                    'per_page' => $categories->perPage(),
+                    'total' => $categories->total(),
+                ],
+            ],
+            'filters' => $filters,
+            'stats' => $stats,
+        ]);
+    }
+
+    /**
+     * Reorder categories for a specific menu.
+     */
+    public function reorderCategories(Request $request, Menu $menu): RedirectResponse
+    {
+        $request->validate([
+            'categories' => ['required', 'array'],
+            'categories.*.id' => ['required', 'integer', 'exists:menu_categories,id'],
+            'categories.*.sort_order' => ['required', 'integer', 'min:0'],
+        ]);
+
+        foreach ($request->categories as $item) {
+            Category::where('id', $item['id'])
+                ->where('menu_id', $menu->id)
+                ->update(['sort_order' => $item['sort_order']]);
+        }
+
+        return redirect()->back()->with('success', 'Categories reordered successfully.');
     }
 }

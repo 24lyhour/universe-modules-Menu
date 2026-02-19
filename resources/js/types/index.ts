@@ -153,6 +153,26 @@ export interface CategoryDeleteProps {
     category: Category;
 }
 
+export interface CategoryProduct {
+    id: number;
+    name: string;
+    sku: string | null;
+    price: number;
+    sale_price: number | null;
+    status: string;
+    image_url: string | null;
+    pivot: {
+        price_override: number | null;
+        sort_order: number;
+        is_available: boolean;
+    };
+}
+
+export interface CategoryShowProps {
+    category: Category;
+    products: CategoryProduct[];
+}
+
 // Menu Type Types
 export interface MenuType {
     id: number;

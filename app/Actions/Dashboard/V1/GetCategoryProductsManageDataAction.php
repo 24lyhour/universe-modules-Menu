@@ -16,14 +16,21 @@ class GetCategoryProductsManageDataAction
 
         $allProducts = Product::where('status', 'active')
             ->orderBy('name')
-            ->get(['id', 'name', 'sku', 'price', 'image_url']);
+            ->get(['id', 'name', 'sku', 'price', 'images'])
+            ->map(fn ($product) => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'sku' => $product->sku,
+                'price' => $product->price,
+                'image_url' => $product->images[0] ?? null,
+            ]);
 
         $assignedProducts = $category->products->map(fn ($product) => [
             'id' => $product->id,
             'name' => $product->name,
             'sku' => $product->sku,
             'price' => $product->price,
-            'image_url' => $product->image_url,
+            'image_url' => $product->images[0] ?? null,
             'pivot' => [
                 'price_override' => $product->pivot->price_override,
                 'sort_order' => $product->pivot->sort_order,

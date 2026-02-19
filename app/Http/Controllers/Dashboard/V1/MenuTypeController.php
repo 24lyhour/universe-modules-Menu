@@ -99,7 +99,7 @@ class MenuTypeController extends Controller
     public function show(MenuType $menuType): Response
     {
         return Inertia::render('menu::dashboard/TypeMenu/Show', [
-            'menuType' => new MenuTypeResource($menuType),
+            'menuType' => (new MenuTypeResource($menuType))->resolve(),
         ]);
     }
 

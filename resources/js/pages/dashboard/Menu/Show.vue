@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { ArrowLeft } from 'lucide-vue-next';
+import { ArrowLeft, Layers } from 'lucide-vue-next';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,16 +34,24 @@ const breadcrumbs: BreadcrumbItem[] = [
         <Head :title="menu.name" />
 
         <div class="flex h-full flex-1 flex-col gap-6 p-6">
-            <div class="flex items-center gap-4">
-                <Button variant="ghost" size="icon" as-child>
-                    <Link href="/dashboard/menus">
-                        <ArrowLeft class="h-4 w-4" />
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <Button variant="ghost" size="icon" as-child>
+                        <Link href="/dashboard/menus">
+                            <ArrowLeft class="h-4 w-4" />
+                        </Link>
+                    </Button>
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight">{{ menu.name }}</h1>
+                        <p class="text-muted-foreground">Menu details</p>
+                    </div>
+                </div>
+                <Button as-child>
+                    <Link :href="`/dashboard/menus/${menu.id}/categories`">
+                        <Layers class="mr-2 h-4 w-4" />
+                        Manage Categories
                     </Link>
                 </Button>
-                <div>
-                    <h1 class="text-2xl font-bold tracking-tight">{{ menu.name }}</h1>
-                    <p class="text-muted-foreground">Menu details</p>
-                </div>
             </div>
 
             <Card>

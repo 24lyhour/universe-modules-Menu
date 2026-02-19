@@ -125,43 +125,34 @@ const handleProductDragEnd = (categoryId: number) => {
     productReordering.value[categoryId] = true;
 };
 
-const saveProductOrder = (categoryId: number) => {
-    const category = localCategories.value.find(c => c.id === categoryId);
-    if (!category) {
-        return;
-    }
-
-    productSaving.value[categoryId] = true;
+const saveProductOrder = (category: CategoryWithProducts) => {
+    productSaving.value[category.id] = true;
     const reorderedProducts = category.products.map((product, index) => ({
         id: product.id,
         sort_order: index + 1,
     }));
 
-    router.post(`/dashboard/categories/${categoryId}/products/reorder`, {
+    router.post(`/dashboard/categories/${category.id}/products/reorder`, {
         products: reorderedProducts,
     }, {
         preserveScroll: true,
         onSuccess: () => {
-            productReordering.value[categoryId] = false;
+            productReordering.value[category.id] = false;
             toast.success('Products reordered successfully');
         },
-        onError: () => {
-            toast.error('Failed to save product order');
-        },
         onFinish: () => {
-            productSaving.value[categoryId] = false;
+            productSaving.value[category.id] = false;
         },
     });
 };
 
-const cancelProductReorder = (categoryId: number) => {
+const cancelProductReorder = (category: CategoryWithProducts) => {
     // Reset products to original order
-    const category = localCategories.value.find(c => c.id === categoryId);
-    const originalCategory = props.categories.find(c => c.id === categoryId);
-    if (category && originalCategory) {
+    const originalCategory = props.categories.find(c => c.id === category.id);
+    if (originalCategory) {
         category.products = [...originalCategory.products];
     }
-    productReordering.value[categoryId] = false;
+    productReordering.value[category.id] = false;
 };
 
 const handleSearch = () => {
@@ -392,7 +383,7 @@ const getStatusVariant = (status: string) => {
                                 </CollapsibleTrigger>
 
                                 <!-- Category Image -->
-                                <div class="h-12 w-12 rounded-lg bg-muted overflow-hidden shrink-0">
+                                <div class="h-12 w-12 rounded-lg bg-muted overflow-hidden flex-shrink-0">
                                     <img
                                         v-if="category.image_url"
                                         :src="category.image_url"
@@ -472,14 +463,14 @@ const getStatusVariant = (status: string) => {
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                @click="cancelProductReorder(category.id)"
+                                                @click="cancelProductReorder(category)"
                                                 :disabled="productSaving[category.id]"
                                             >
                                                 Cancel
                                             </Button>
                                             <Button
                                                 size="sm"
-                                                @click="saveProductOrder(category.id)"
+                                                @click="saveProductOrder(category)"
                                                 :disabled="productSaving[category.id]"
                                             >
                                                 <Save class="mr-1 h-3 w-3" />

@@ -1,181 +1,226 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
+import { ModalForm } from '@/components/shared';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Search, Layers, Save } from 'lucide-vue-next';
-import { toast } from 'vue-sonner';
-import type { BreadcrumbItem } from '@/types';
+import { useForm } from '@inertiajs/vue3';
+import { Check, Layers, Plus, Search, X } from 'lucide-vue-next';
+import { useModal } from 'momentum-modal';
+import { computed, ref } from 'vue';
 
-interface Category {
+interface AvailableCategory {
     id: number;
     name: string;
     description: string | null;
     image_url: string | null;
-    status: boolean;
-    products_count?: number;
-}
-
-interface Menu {
-    id: number;
-    name: string;
+    products_count: number;
+    current_menu_id: number | null;
 }
 
 interface Props {
-    menu: Menu;
-    availableCategories: Category[];
+    menu: {
+        id: number;
+        name: string;
+    };
+    availableCategories: AvailableCategory[];
 }
 
 const props = defineProps<Props>();
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Menus', href: '/dashboard/menus' },
-    { title: props.menu.name, href: `/dashboard/menus/${props.menu.id}` },
-    { title: 'Assign Categories', href: `/dashboard/menus/${props.menu.id}/categories/assign` },
-];
+const { show, close, redirect } = useModal();
 
-const search = ref('');
-const selectedCategories = ref<number[]>([]);
-const isSaving = ref(false);
+const isOpen = computed({
+    get: () => show.value,
+    set: (val: boolean) => {
+        if (!val) {
+            close();
+            redirect();
+        }
+    },
+});
 
+// Local state for selected categories
+const selectedCategoryIds = ref<number[]>([]);
+const searchQuery = ref('');
+
+// Form for submission
+const form = useForm({
+    category_ids: [] as number[],
+});
+
+// Filtered categories based on search
 const filteredCategories = computed(() => {
-    if (!search.value) return props.availableCategories;
-    const query = search.value.toLowerCase();
+    if (!searchQuery.value) return props.availableCategories;
+    const query = searchQuery.value.toLowerCase();
     return props.availableCategories.filter(
-        cat => cat.name.toLowerCase().includes(query) ||
-               (cat.description && cat.description.toLowerCase().includes(query))
+        (c) =>
+            c.name.toLowerCase().includes(query) ||
+            (c.description && c.description.toLowerCase().includes(query))
     );
 });
 
+// Check if category is selected
+const isSelected = (categoryId: number): boolean => {
+    return selectedCategoryIds.value.includes(categoryId);
+};
+
+// Toggle category selection
 const toggleCategory = (categoryId: number) => {
-    const index = selectedCategories.value.indexOf(categoryId);
+    const index = selectedCategoryIds.value.indexOf(categoryId);
     if (index === -1) {
-        selectedCategories.value.push(categoryId);
+        selectedCategoryIds.value.push(categoryId);
     } else {
-        selectedCategories.value.splice(index, 1);
+        selectedCategoryIds.value.splice(index, 1);
     }
 };
 
-const isSelected = (categoryId: number) => {
-    return selectedCategories.value.includes(categoryId);
+// Select all visible categories
+const selectAll = () => {
+    filteredCategories.value.forEach((c) => {
+        if (!selectedCategoryIds.value.includes(c.id)) {
+            selectedCategoryIds.value.push(c.id);
+        }
+    });
 };
 
-const handleSave = () => {
-    if (selectedCategories.value.length === 0) {
-        toast.error('Please select at least one category');
-        return;
-    }
+// Clear selection
+const clearSelection = () => {
+    selectedCategoryIds.value = [];
+};
 
-    isSaving.value = true;
-    router.post(`/dashboard/menus/${props.menu.id}/categories/assign`, {
-        category_ids: selectedCategories.value,
-    }, {
+const handleSubmit = () => {
+    form.category_ids = selectedCategoryIds.value;
+    form.post(`/dashboard/menus/${props.menu.id}/categories/sync`, {
         onSuccess: () => {
-            toast.success('Categories assigned successfully');
-            router.visit(`/dashboard/menus/${props.menu.id}/categories/manage`);
-        },
-        onError: () => {
-            toast.error('Failed to assign categories');
-        },
-        onFinish: () => {
-            isSaving.value = false;
+            close();
+            redirect();
         },
     });
+};
+
+const handleCancel = () => {
+    close();
+    redirect();
 };
 </script>
 
 <template>
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <Head :title="`${menu.name} - Assign Categories`" />
-
-        <div class="flex h-full flex-1 flex-col gap-6 p-6">
-            <!-- Header -->
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                    <Button variant="outline" size="icon" as-child>
-                        <Link :href="`/dashboard/menus/${menu.id}/categories/manage`">
-                            <ArrowLeft class="h-4 w-4" />
-                        </Link>
-                    </Button>
-                    <div>
-                        <h1 class="text-2xl font-bold tracking-tight">Assign Categories to {{ menu.name }}</h1>
-                        <p class="text-muted-foreground">Select existing categories to add to this menu</p>
-                    </div>
+    <ModalForm
+        v-model:open="isOpen"
+        :title="`Add Categories to ${menu.name}`"
+        :description="`Select existing categories to add to this menu`"
+        mode="edit"
+        size="lg"
+        :submit-text="selectedCategoryIds.length > 0 ? `Add ${selectedCategoryIds.length} Categories` : 'Select Categories'"
+        :loading="form.processing"
+        :disabled="selectedCategoryIds.length === 0"
+        @submit="handleSubmit"
+        @cancel="handleCancel"
+    >
+        <div class="space-y-4">
+            <!-- Search and Actions -->
+            <div class="flex items-center gap-2">
+                <div class="relative flex-1">
+                    <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                        v-model="searchQuery"
+                        placeholder="Search categories..."
+                        class="pl-9"
+                    />
                 </div>
-                <Button @click="handleSave" :disabled="isSaving || selectedCategories.length === 0">
-                    <Save class="mr-2 h-4 w-4" />
-                    {{ isSaving ? 'Saving...' : `Assign ${selectedCategories.length} Categories` }}
+                <Button
+                    v-if="selectedCategoryIds.length > 0"
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    @click="clearSelection"
+                >
+                    <X class="mr-1 h-3 w-3" />
+                    Clear
+                </Button>
+                <Button
+                    v-if="filteredCategories.length > 0 && selectedCategoryIds.length !== filteredCategories.length"
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    @click="selectAll"
+                >
+                    <Check class="mr-1 h-3 w-3" />
+                    Select All
                 </Button>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <CardTitle>Available Categories</CardTitle>
-                            <CardDescription>
-                                {{ selectedCategories.length }} of {{ availableCategories.length }} selected
-                            </CardDescription>
-                        </div>
-                        <div class="relative w-64">
-                            <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                v-model="search"
-                                placeholder="Search categories..."
-                                class="pl-9"
-                            />
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <div v-if="filteredCategories.length === 0" class="text-center py-12 text-muted-foreground">
-                        <Layers class="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>No categories available to assign</p>
-                    </div>
+            <!-- Categories List -->
+            <ScrollArea class="h-[350px] pr-4">
+                <div v-if="filteredCategories.length === 0" class="text-center py-8 text-muted-foreground">
+                    {{ searchQuery ? 'No categories found.' : 'No available categories to add.' }}
+                </div>
 
-                    <div v-else class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                        <div
-                            v-for="category in filteredCategories"
-                            :key="category.id"
-                            class="flex items-center gap-4 p-4 rounded-lg border cursor-pointer transition-colors"
-                            :class="isSelected(category.id) ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'"
-                            @click="toggleCategory(category.id)"
-                        >
-                            <Checkbox
-                                :checked="isSelected(category.id)"
-                                @update:checked="toggleCategory(category.id)"
+                <div v-else class="space-y-2">
+                    <div
+                        v-for="category in filteredCategories"
+                        :key="category.id"
+                        :class="[
+                            'flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
+                            isSelected(category.id)
+                                ? 'border-primary bg-primary/5'
+                                : 'hover:bg-muted/50',
+                        ]"
+                        @click="toggleCategory(category.id)"
+                    >
+                        <!-- Checkbox -->
+                        <Checkbox
+                            :checked="isSelected(category.id)"
+                            @update:checked="toggleCategory(category.id)"
+                            @click.stop
+                        />
+
+                        <!-- Category Image -->
+                        <div class="h-10 w-10 rounded-lg bg-muted overflow-hidden shrink-0">
+                            <img
+                                v-if="category.image_url"
+                                :src="category.image_url"
+                                :alt="category.name"
+                                class="h-full w-full object-cover"
                             />
-                            <div class="h-12 w-12 rounded-lg bg-muted overflow-hidden shrink-0">
-                                <img
-                                    v-if="category.image_url"
-                                    :src="category.image_url"
-                                    :alt="category.name"
-                                    class="h-full w-full object-cover"
-                                />
-                                <div v-else class="h-full w-full flex items-center justify-center">
-                                    <Layers class="h-6 w-6 text-muted-foreground" />
-                                </div>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2">
-                                    <span class="font-medium truncate">{{ category.name }}</span>
-                                    <Badge :variant="category.status ? 'default' : 'secondary'" class="text-xs">
-                                        {{ category.status ? 'Active' : 'Inactive' }}
-                                    </Badge>
-                                </div>
-                                <p v-if="category.description" class="text-sm text-muted-foreground truncate">
-                                    {{ category.description }}
-                                </p>
+                            <div v-else class="h-full w-full flex items-center justify-center">
+                                <Layers class="h-5 w-5 text-muted-foreground" />
                             </div>
                         </div>
+
+                        <!-- Category Info -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="font-medium text-sm truncate">{{ category.name }}</span>
+                                <Badge variant="secondary" class="text-xs">
+                                    {{ category.products_count }} products
+                                </Badge>
+                            </div>
+                            <p v-if="category.description" class="text-xs text-muted-foreground truncate">
+                                {{ category.description }}
+                            </p>
+                            <p v-if="category.current_menu_id" class="text-xs text-amber-600">
+                                Currently assigned to another menu
+                            </p>
+                        </div>
+
+                        <!-- Selected indicator -->
+                        <div v-if="isSelected(category.id)" class="text-primary">
+                            <Check class="h-5 w-5" />
+                        </div>
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+            </ScrollArea>
+
+            <!-- Selection Summary -->
+            <div v-if="selectedCategoryIds.length > 0" class="pt-2 border-t">
+                <p class="text-sm text-muted-foreground">
+                    <span class="font-medium text-foreground">{{ selectedCategoryIds.length }}</span>
+                    {{ selectedCategoryIds.length === 1 ? 'category' : 'categories' }} selected
+                </p>
+            </div>
         </div>
-    </AppLayout>
+    </ModalForm>
 </template>

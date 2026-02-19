@@ -195,6 +195,47 @@ class MenuController extends Controller
     }
 
     /**
+     * Show form to assign existing categories to a menu.
+     */
+    public function assignCategories(Menu $menu): Response
+    {
+        // Get categories not assigned to this menu
+        $availableCategories = Category::whereNull('menu_id')
+            ->orWhere('menu_id', '!=', $menu->id)
+            ->orderBy('name')
+            ->get();
+
+        return Inertia::render('menu::dashboard/Menu/AssignCategories', [
+            'menu' => (new MenuResource($menu))->resolve(),
+            'availableCategories' => CategoryResource::collection($availableCategories)->resolve(),
+        ]);
+    }
+
+    /**
+     * Store assigned categories to a menu.
+     */
+    public function storeAssignedCategories(Request $request, Menu $menu): RedirectResponse
+    {
+        $request->validate([
+            'category_ids' => ['required', 'array'],
+            'category_ids.*' => ['required', 'integer', 'exists:menu_categories,id'],
+        ]);
+
+        $maxSortOrder = Category::where('menu_id', $menu->id)->max('sort_order') ?? 0;
+
+        foreach ($request->category_ids as $index => $categoryId) {
+            Category::where('id', $categoryId)->update([
+                'menu_id' => $menu->id,
+                'sort_order' => $maxSortOrder + $index + 1,
+            ]);
+        }
+
+        return redirect()
+            ->route('menu.menus.categories.manage', $menu)
+            ->with('success', 'Categories assigned successfully.');
+    }
+
+    /**
      * Reorder categories for a specific menu.
      */
     public function reorderCategories(Request $request, Menu $menu): RedirectResponse

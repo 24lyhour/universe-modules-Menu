@@ -12,6 +12,8 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->name('menu.')->gro
     Route::get('menus/{menu}/delete', [MenuController::class, 'confirmDelete'])->name('menus.confirm-delete');
     Route::put('menus/{menu}/toggle-status', [MenuController::class, 'toggleStatus'])->name('menus.toggle-status');
     Route::get('menus/{menu}/categories/manage', [MenuController::class, 'categories'])->name('menus.categories.manage');
+    Route::get('menus/{menu}/categories/assign', [MenuController::class, 'assignCategories'])->name('menus.categories.assign');
+    Route::post('menus/{menu}/categories/assign', [MenuController::class, 'storeAssignedCategories'])->name('menus.categories.store-assigned');
     Route::post('menus/{menu}/categories/reorder', [MenuController::class, 'reorderCategories'])->name('menus.categories.reorder');
 
     // Categories
@@ -20,6 +22,7 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->name('menu.')->gro
     Route::put('categories/{category}/toggle-status', [CategoryController::class, 'toggleStatus'])->name('categories.toggle-status');
     Route::get('categories/{category}/products/manage', [CategoryProductController::class, 'manageProducts'])->name('categories.products.manage');
     Route::post('categories/{category}/products/sync', [CategoryProductController::class, 'syncProducts'])->name('categories.products.sync');
+    Route::post('categories/{category}/products/reorder', [CategoryProductController::class, 'reorderProducts'])->name('categories.products.reorder');
 
     // Menu Types
     Route::resource('menu-types', MenuTypeController::class)->names('menu-types');

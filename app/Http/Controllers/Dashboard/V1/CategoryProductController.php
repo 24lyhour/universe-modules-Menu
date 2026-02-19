@@ -41,4 +41,24 @@ class CategoryProductController extends Controller
             ->route('menu.categories.index')
             ->with('success', 'Products updated successfully.');
     }
+
+    /**
+     * Reorder products in a category.
+     */
+    public function reorderProducts(Request $request, Category $category): RedirectResponse
+    {
+        $request->validate([
+            'products' => ['required', 'array'],
+            'products.*.id' => ['required', 'integer'],
+            'products.*.sort_order' => ['required', 'integer', 'min:0'],
+        ]);
+
+        foreach ($request->products as $item) {
+            $category->products()->updateExistingPivot($item['id'], [
+                'sort_order' => $item['sort_order'],
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Products reordered successfully.');
+    }
 }

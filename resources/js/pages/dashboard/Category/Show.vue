@@ -253,7 +253,7 @@ const getStatusVariant = (status: string) => {
                             </div>
 
                             <!-- Product Image -->
-                            <div class="h-12 w-12 overflow-hidden rounded-lg bg-muted flex-shrink-0">
+                            <div class="h-12 w-12 overflow-hidden rounded-lg bg-muted shrink-0">
                                 <img
                                     v-if="product.image_url"
                                     :src="product.image_url"

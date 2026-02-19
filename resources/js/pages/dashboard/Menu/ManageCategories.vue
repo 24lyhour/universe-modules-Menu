@@ -383,7 +383,7 @@ const getStatusVariant = (status: string) => {
                                 </CollapsibleTrigger>
 
                                 <!-- Category Image -->
-                                <div class="h-12 w-12 rounded-lg bg-muted overflow-hidden flex-shrink-0">
+                                <div class="h-12 w-12 rounded-lg bg-muted overflow-hidden shrink-0">
                                     <img
                                         v-if="category.image_url"
                                         :src="category.image_url"

@@ -5,16 +5,17 @@ use Modules\Menu\Http\Controllers\Dashboard\V1\CategoryController;
 use Modules\Menu\Http\Controllers\Dashboard\V1\MenuController;
 use Modules\Menu\Http\Controllers\Dashboard\V1\MenuTypeController;
 use Modules\Menu\Http\Controllers\Dashboard\V1\CategoryProductController;
+use Modules\Menu\Http\Controllers\Dashboard\V1\MenuCategoryController;
 
 Route::middleware(['auth', 'verified'])->prefix('dashboard')->name('menu.')->group(function () {
     // Menus
     Route::resource('menus', MenuController::class)->names('menus');
     Route::get('menus/{menu}/delete', [MenuController::class, 'confirmDelete'])->name('menus.confirm-delete');
     Route::put('menus/{menu}/toggle-status', [MenuController::class, 'toggleStatus'])->name('menus.toggle-status');
-    Route::get('menus/{menu}/categories/manage', [MenuController::class, 'categories'])->name('menus.categories.manage');
-    Route::get('menus/{menu}/categories/assign', [MenuController::class, 'assignCategories'])->name('menus.categories.assign');
-    Route::post('menus/{menu}/categories/assign', [MenuController::class, 'storeAssignedCategories'])->name('menus.categories.store-assigned');
-    Route::post('menus/{menu}/categories/reorder', [MenuController::class, 'reorderCategories'])->name('menus.categories.reorder');
+    Route::get('menus/{menu}/categories/manage', [MenuCategoryController::class, 'manageCategories'])->name('menus.categories.manage');
+    Route::post('menus/{menu}/categories/reorder', [MenuCategoryController::class, 'reorderCategories'])->name('menus.categories.reorder');
+    Route::get('menus/{menu}/categories/assign', [MenuCategoryController::class, 'assignCategories'])->name('menus.categories.assign');
+    Route::post('menus/{menu}/categories/sync', [MenuCategoryController::class, 'syncAssignedCategories'])->name('menus.categories.sync');
 
     // Categories
     Route::resource('categories', CategoryController::class)->names('categories');

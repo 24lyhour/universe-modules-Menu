@@ -14,7 +14,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Plus, Layers, CheckCircle, XCircle, Search, Eye, Pencil, Trash2, Package } from 'lucide-vue-next';
+import { Plus, Layers, CheckCircle, XCircle, Search, Eye, Pencil, Trash2, Package, ExternalLink } from 'lucide-vue-next';
+import { Badge } from '@/components/ui/badge';
+import { Link } from '@inertiajs/vue3';
 import type { BreadcrumbItem } from '@/types';
 import type { CategoryIndexProps, Category } from '@menu/types';
 
@@ -206,6 +208,22 @@ const handleStatusToggle = (category: Category, newStatus: boolean) => {
                     @page-change="handlePageChange"
                     @per-page-change="handlePerPageChange"
                 >
+                    <template #cell-products_count="{ item }">
+                        <Link
+                            :href="`/dashboard/categories/${item.id}/products/manage`"
+                            class="inline-block"
+                        >
+                            <Badge
+                                :variant="(item.products_count ?? 0) > 0 ? 'default' : 'secondary'"
+                                class="gap-1.5 cursor-pointer hover:bg-primary/80 transition-colors"
+                            >
+                                <Package class="h-3 w-3" />
+                                {{ item.products_count ?? 0 }}
+                                <ExternalLink class="h-3 w-3 opacity-50" />
+                            </Badge>
+                        </Link>
+                    </template>
+
                     <template #cell-status="{ item }">
                         <div class="flex items-center gap-2" @click.stop>
                             <Switch

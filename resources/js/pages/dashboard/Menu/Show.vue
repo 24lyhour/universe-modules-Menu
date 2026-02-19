@@ -57,7 +57,7 @@ const formatDays = (days: string | null) => {
                 </div>
                 <div class="flex items-center gap-2">
                     <Button variant="outline" as-child>
-                        <Link href="/dashboard/categories">
+                        <Link :href="`/dashboard/menus/${menu.id}/categories/manage`">
                             <Layers class="mr-2 h-4 w-4" />
                             Manage Categories
                         </Link>

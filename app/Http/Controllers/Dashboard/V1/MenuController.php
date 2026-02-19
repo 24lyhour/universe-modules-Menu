@@ -182,7 +182,7 @@ class MenuController extends Controller
             'inactive' => Category::where('menu_id', $menu->id)->where('status', false)->count(),
         ];
 
-        return Inertia::render('menu::dashboard/Menu/Categories', [
+        return Inertia::render('menu::dashboard/Menu/ManageCategories', [
             'menu' => (new MenuResource($menu))->resolve(),
             'categories' => [
                 'data' => CategoryResource::collection($categories)->resolve(),

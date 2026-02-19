@@ -13,7 +13,7 @@ class MenuService
      */
     public function paginate(int $perPage = 10, array $filters = []): LengthAwarePaginator
     {
-        $query = Menu::with(['outlet', 'menuType']);
+        $query = Menu::with(['outlet', 'menuType'])->withCount('categories');
 
         // Search filter
         if (!empty($filters['search'])) {

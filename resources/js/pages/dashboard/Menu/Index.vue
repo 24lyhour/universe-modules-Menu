@@ -14,7 +14,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Plus, UtensilsCrossed, CheckCircle, XCircle, Search, Eye, Pencil, Trash2 } from 'lucide-vue-next';
+import { Plus, UtensilsCrossed, CheckCircle, XCircle, Search, Eye, Pencil, Trash2, Layers } from 'lucide-vue-next';
+import { Badge } from '@/components/ui/badge';
+import { Link } from '@inertiajs/vue3';
 import type { BreadcrumbItem } from '@/types';
 import type { MenuIndexProps, Menu } from '@menu/types';
 
@@ -45,6 +47,11 @@ const columns: TableColumn<Menu>[] = [
         render: (menu) => menu.menu_type_name || '-',
     },
     {
+        key: 'categories_count',
+        label: 'Categories',
+        render: (menu) => (menu.categories_count ?? 0).toString(),
+    },
+    {
         key: 'status',
         label: 'Status',
         render: (menu) => menu.status ? 'Active' : 'Inactive',
@@ -52,6 +59,11 @@ const columns: TableColumn<Menu>[] = [
 ];
 
 const actions: TableAction<Menu>[] = [
+    {
+        label: 'Categories',
+        icon: Layers,
+        onClick: (menu) => router.visit(`/dashboard/menus/${menu.id}/categories`),
+    },
     {
         label: 'View',
         icon: Eye,
@@ -199,6 +211,21 @@ const handleStatusToggle = (menu: Menu, newStatus: boolean) => {
                     @page-change="handlePageChange"
                     @per-page-change="handlePerPageChange"
                 >
+                    <template #cell-categories_count="{ item }">
+                        <Link
+                            :href="`/dashboard/menus/${item.id}/categories`"
+                            class="inline-block"
+                        >
+                            <Badge
+                                :variant="(item.categories_count ?? 0) > 0 ? 'default' : 'secondary'"
+                                class="cursor-pointer"
+                            >
+                                <Layers class="mr-1 h-3 w-3" />
+                                {{ item.categories_count ?? 0 }}
+                            </Badge>
+                        </Link>
+                    </template>
+
                     <template #cell-status="{ item }">
                         <div class="flex items-center gap-2" @click.stop>
                             <Switch

@@ -10,12 +10,11 @@ use Inertia\Response;
 use Momentum\Modal\Modal;
 use Modules\Menu\Actions\Dashboard\V1\CreateMenuAction;
 use Modules\Menu\Actions\Dashboard\V1\DeleteMenuAction;
+use Modules\Menu\Actions\Dashboard\V1\GetMenuShowDataAction;
 use Modules\Menu\Actions\Dashboard\V1\UpdateMenuAction;
 use Modules\Menu\Http\Requests\Dashboard\V1\StoreMenuRequest;
 use Modules\Menu\Http\Requests\Dashboard\V1\UpdateMenuRequest;
 use Modules\Menu\Http\Resources\Dashboard\V1\MenuResource;
-use Modules\Menu\Http\Resources\Dashboard\V1\CategoryResource;
-use Modules\Menu\Models\Category;
 use Modules\Menu\Models\Menu;
 use Modules\Menu\Models\MenuType;
 use Modules\Menu\Services\MenuService;
@@ -81,43 +80,11 @@ class MenuController extends Controller
     /**
      * Display a specific menu.
      */
-    public function show(Menu $menu): Response
+    public function show(Menu $menu, GetMenuShowDataAction $action): Response
     {
-        $menu->load(['outlet', 'menuType']);
+        $data = $action->execute($menu);
 
-        // Load categories with products for this menu
-        $categories = Category::where('menu_id', $menu->id)
-            ->with(['products' => function ($q) {
-                $q->orderBy('menu_category_products.sort_order');
-            }])
-            ->withCount('products')
-            ->orderBy('sort_order')
-            ->get()
-            ->map(function ($category) {
-                return [
-                    'id' => $category->id,
-                    'name' => $category->name,
-                    'description' => $category->description,
-                    'image_url' => $category->image_url,
-                    'sort_order' => $category->sort_order,
-                    'status' => $category->status,
-                    'products_count' => $category->products_count,
-                    'products' => $category->products->map(fn ($product) => [
-                        'id' => $product->id,
-                        'name' => $product->name,
-                        'sku' => $product->sku,
-                        'price' => $product->price,
-                        'sale_price' => $product->sale_price,
-                        'status' => $product->status,
-                        'image_url' => $product->images[0] ?? null,
-                    ]),
-                ];
-            });
-
-        return Inertia::render('menu::dashboard/Menu/Show', [
-            'menu' => (new MenuResource($menu))->resolve(),
-            'categories' => $categories,
-        ]);
+        return Inertia::render('menu::dashboard/Menu/Show', $data);
     }
 
     /**
@@ -190,107 +157,5 @@ class MenuController extends Controller
         ]);
 
         return redirect()->back();
-    }
-
-    /**
-     * Display categories for a specific menu.
-     */
-    public function categories(Request $request, Menu $menu): Response
-    {
-        $menu->load(['outlet', 'menuType']);
-        $filters = $request->only(['search', 'status']);
-
-        $query = Category::where('menu_id', $menu->id)
-            ->with(['products' => function ($q) {
-                $q->orderBy('menu_category_products.sort_order');
-            }])
-            ->withCount('products')
-            ->orderBy('sort_order');
-
-        if (!empty($filters['search'])) {
-            $query->where('name', 'like', '%' . $filters['search'] . '%');
-        }
-
-        if (!empty($filters['status']) && $filters['status'] !== 'all') {
-            $query->where('status', $filters['status'] === '1' || $filters['status'] === 'active');
-        }
-
-        $categories = $query->get();
-
-        $stats = [
-            'total' => Category::where('menu_id', $menu->id)->count(),
-            'active' => Category::where('menu_id', $menu->id)->where('status', true)->count(),
-            'inactive' => Category::where('menu_id', $menu->id)->where('status', false)->count(),
-        ];
-
-        return Inertia::render('menu::dashboard/Menu/ManageCategories', [
-            'menu' => (new MenuResource($menu))->resolve(),
-            'categories' => CategoryResource::collection($categories)->resolve(),
-            'filters' => $filters,
-            'stats' => $stats,
-        ]);
-    }
-
-    /**
-     * Show form to assign existing categories to a menu.
-     */
-    public function assignCategories(Menu $menu): Response
-    {
-        $menu->load(['outlet', 'menuType']);
-
-        // Get categories not assigned to this menu
-        $availableCategories = Category::whereNull('menu_id')
-            ->orWhere('menu_id', '!=', $menu->id)
-            ->orderBy('name')
-            ->get();
-
-        return Inertia::render('menu::dashboard/Menu/AssignCategories', [
-            'menu' => (new MenuResource($menu))->resolve(),
-            'availableCategories' => CategoryResource::collection($availableCategories)->resolve(),
-        ]);
-    }
-
-    /**
-     * Store assigned categories to a menu.
-     */
-    public function storeAssignedCategories(Request $request, Menu $menu): RedirectResponse
-    {
-        $request->validate([
-            'category_ids' => ['required', 'array'],
-            'category_ids.*' => ['required', 'integer', 'exists:menu_categories,id'],
-        ]);
-
-        $maxSortOrder = Category::where('menu_id', $menu->id)->max('sort_order') ?? 0;
-
-        foreach ($request->category_ids as $index => $categoryId) {
-            Category::where('id', $categoryId)->update([
-                'menu_id' => $menu->id,
-                'sort_order' => $maxSortOrder + $index + 1,
-            ]);
-        }
-
-        return redirect()
-            ->route('menu.menus.categories.manage', $menu)
-            ->with('success', 'Categories assigned successfully.');
-    }
-
-    /**
-     * Reorder categories for a specific menu.
-     */
-    public function reorderCategories(Request $request, Menu $menu): RedirectResponse
-    {
-        $request->validate([
-            'categories' => ['required', 'array'],
-            'categories.*.id' => ['required', 'integer', 'exists:menu_categories,id'],
-            'categories.*.sort_order' => ['required', 'integer', 'min:0'],
-        ]);
-
-        foreach ($request->categories as $item) {
-            Category::where('id', $item['id'])
-                ->where('menu_id', $menu->id)
-                ->update(['sort_order' => $item['sort_order']]);
-        }
-
-        return redirect()->back()->with('success', 'Categories reordered successfully.');
     }
 }

@@ -96,8 +96,29 @@ class CategoryController extends Controller
      */
     public function show(Category $category): Response
     {
+        $category->load(['products' => function ($query) {
+            $query->orderBy('menu_category_products.sort_order');
+        }]);
+
+        // Format products with pivot data
+        $products = $category->products->map(fn ($product) => [
+            'id' => $product->id,
+            'name' => $product->name,
+            'sku' => $product->sku,
+            'price' => $product->price,
+            'sale_price' => $product->sale_price,
+            'status' => $product->status,
+            'image_url' => $product->images[0] ?? null,
+            'pivot' => [
+                'price_override' => $product->pivot->price_override,
+                'sort_order' => $product->pivot->sort_order,
+                'is_available' => $product->pivot->is_available,
+            ],
+        ]);
+
         return Inertia::render('menu::dashboard/Category/Show', [
-            'category' => new CategoryResource($category),
+            'category' => (new CategoryResource($category))->resolve(),
+            'products' => $products,
         ]);
     }
 

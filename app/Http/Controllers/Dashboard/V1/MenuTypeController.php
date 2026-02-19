@@ -9,20 +9,27 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Momentum\Modal\Modal;
 use Modules\Menu\Actions\Dashboard\V1\CreateMenuTypeAction;
-use Modules\Menu\Actions\Dashboard\V1\UpdateMenuTypeAction;
 use Modules\Menu\Actions\Dashboard\V1\DeleteMenuTypeAction;
+use Modules\Menu\Actions\Dashboard\V1\GetMenuTypeCreateDataAction;
+use Modules\Menu\Actions\Dashboard\V1\GetMenuTypeEditDataAction;
+use Modules\Menu\Actions\Dashboard\V1\GetMenuTypeIndexDataAction;
+use Modules\Menu\Actions\Dashboard\V1\ToggleMenuTypeStatusAction;
+use Modules\Menu\Actions\Dashboard\V1\UpdateMenuTypeAction;
 use Modules\Menu\Http\Requests\Dashboard\V1\StoreMenuTypeRequest;
 use Modules\Menu\Http\Requests\Dashboard\V1\UpdateMenuTypeRequest;
 use Modules\Menu\Http\Resources\Dashboard\V1\MenuTypeResource;
 use Modules\Menu\Models\MenuType;
-use Modules\Outlet\Models\Outlet;
 
 class MenuTypeController extends Controller
 {
     public function __construct(
+        protected GetMenuTypeIndexDataAction $getMenuTypeIndexDataAction,
+        protected GetMenuTypeCreateDataAction $getMenuTypeCreateDataAction,
+        protected GetMenuTypeEditDataAction $getMenuTypeEditDataAction,
         protected CreateMenuTypeAction $createMenuTypeAction,
         protected UpdateMenuTypeAction $updateMenuTypeAction,
         protected DeleteMenuTypeAction $deleteMenuTypeAction,
+        protected ToggleMenuTypeStatusAction $toggleMenuTypeStatusAction,
     ) {}
 
     /**
@@ -33,37 +40,9 @@ class MenuTypeController extends Controller
         $perPage = $request->input('per_page', 10);
         $filters = $request->only(['search', 'status']);
 
-        $query = MenuType::with('outlet');
+        $data = $this->getMenuTypeIndexDataAction->execute($perPage, $filters);
 
-        if (!empty($filters['search'])) {
-            $query->where('name', 'like', '%' . $filters['search'] . '%');
-        }
-
-        if (!empty($filters['status']) && $filters['status'] !== 'all') {
-            $query->where('status', $filters['status'] === '1' || $filters['status'] === 'active');
-        }
-
-        $menuTypes = $query->latest()->paginate($perPage);
-
-        $stats = [
-            'total' => MenuType::count(),
-            'active' => MenuType::where('status', true)->count(),
-            'inactive' => MenuType::where('status', false)->count(),
-        ];
-
-        return Inertia::render('menu::dashboard/TypeMenu/Index', [
-            'menuTypes' => [
-                'data' => MenuTypeResource::collection($menuTypes)->resolve(),
-                'meta' => [
-                    'current_page' => $menuTypes->currentPage(),
-                    'last_page' => $menuTypes->lastPage(),
-                    'per_page' => $menuTypes->perPage(),
-                    'total' => $menuTypes->total(),
-                ],
-            ],
-            'filters' => $filters,
-            'stats' => $stats,
-        ]);
+        return Inertia::render('menu::dashboard/TypeMenu/Index', $data);
     }
 
     /**
@@ -71,14 +50,10 @@ class MenuTypeController extends Controller
      */
     public function create(): Modal
     {
-        $outlets = Outlet::where('status', 'active')
-            ->select('id', 'name')
-            ->orderBy('name')
-            ->get();
+        $data = $this->getMenuTypeCreateDataAction->execute();
 
-        return Inertia::modal('menu::dashboard/TypeMenu/Create', [
-            'outlets' => $outlets,
-        ])->baseRoute('menu.menu-types.index');
+        return Inertia::modal('menu::dashboard/TypeMenu/Create', $data)
+            ->baseRoute('menu.menu-types.index');
     }
 
     /**
@@ -108,15 +83,10 @@ class MenuTypeController extends Controller
      */
     public function edit(MenuType $menuType): Modal
     {
-        $outlets = Outlet::where('status', 'active')
-            ->select('id', 'name')
-            ->orderBy('name')
-            ->get();
+        $data = $this->getMenuTypeEditDataAction->execute($menuType);
 
-        return Inertia::modal('menu::dashboard/TypeMenu/Edit', [
-            'menuType' => new MenuTypeResource($menuType),
-            'outlets' => $outlets,
-        ])->baseRoute('menu.menu-types.index');
+        return Inertia::modal('menu::dashboard/TypeMenu/Edit', $data)
+            ->baseRoute('menu.menu-types.index');
     }
 
     /**
@@ -158,9 +128,7 @@ class MenuTypeController extends Controller
      */
     public function toggleStatus(Request $request, MenuType $menuType): RedirectResponse
     {
-        $menuType->update([
-            'status' => $request->boolean('status'),
-        ]);
+        $this->toggleMenuTypeStatusAction->execute($menuType, $request->boolean('status'));
 
         return redirect()->back();
     }

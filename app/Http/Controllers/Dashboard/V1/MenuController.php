@@ -159,3 +159,4 @@ class MenuController extends Controller
         return redirect()->back();
     }
 }
+

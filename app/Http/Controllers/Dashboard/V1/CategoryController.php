@@ -9,21 +9,29 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Momentum\Modal\Modal;
 use Modules\Menu\Actions\Dashboard\V1\CreateCategoryAction;
-use Modules\Menu\Actions\Dashboard\V1\UpdateCategoryAction;
 use Modules\Menu\Actions\Dashboard\V1\DeleteCategoryAction;
+use Modules\Menu\Actions\Dashboard\V1\GetCategoryCreateDataAction;
+use Modules\Menu\Actions\Dashboard\V1\GetCategoryEditDataAction;
+use Modules\Menu\Actions\Dashboard\V1\GetCategoryIndexDataAction;
+use Modules\Menu\Actions\Dashboard\V1\GetCategoryShowDataAction;
+use Modules\Menu\Actions\Dashboard\V1\ToggleCategoryStatusAction;
+use Modules\Menu\Actions\Dashboard\V1\UpdateCategoryAction;
 use Modules\Menu\Http\Requests\Dashboard\V1\StoreCategoryRequest;
 use Modules\Menu\Http\Requests\Dashboard\V1\UpdateCategoryRequest;
 use Modules\Menu\Http\Resources\Dashboard\V1\CategoryResource;
 use Modules\Menu\Models\Category;
-use Modules\Menu\Models\Menu;
-use Modules\Product\Models\Product;
 
 class CategoryController extends Controller
 {
     public function __construct(
+        protected GetCategoryIndexDataAction $getCategoryIndexDataAction,
+        protected GetCategoryShowDataAction $getCategoryShowDataAction,
+        protected GetCategoryCreateDataAction $getCategoryCreateDataAction,
+        protected GetCategoryEditDataAction $getCategoryEditDataAction,
         protected CreateCategoryAction $createCategoryAction,
         protected UpdateCategoryAction $updateCategoryAction,
         protected DeleteCategoryAction $deleteCategoryAction,
+        protected ToggleCategoryStatusAction $toggleCategoryStatusAction,
     ) {}
 
     /**
@@ -34,37 +42,9 @@ class CategoryController extends Controller
         $perPage = $request->input('per_page', 10);
         $filters = $request->only(['search', 'status']);
 
-        $query = Category::withCount('products');
+        $data = $this->getCategoryIndexDataAction->execute($perPage, $filters);
 
-        if (!empty($filters['search'])) {
-            $query->where('name', 'like', '%' . $filters['search'] . '%');
-        }
-
-        if (!empty($filters['status']) && $filters['status'] !== 'all') {
-            $query->where('status', $filters['status'] === '1' || $filters['status'] === 'active');
-        }
-
-        $categories = $query->latest()->paginate($perPage);
-
-        $stats = [
-            'total' => Category::count(),
-            'active' => Category::where('status', true)->count(),
-            'inactive' => Category::where('status', false)->count(),
-        ];
-
-        return Inertia::render('menu::dashboard/Category/Index', [
-            'categories' => [
-                'data' => CategoryResource::collection($categories)->resolve(),
-                'meta' => [
-                    'current_page' => $categories->currentPage(),
-                    'last_page' => $categories->lastPage(),
-                    'per_page' => $categories->perPage(),
-                    'total' => $categories->total(),
-                ],
-            ],
-            'filters' => $filters,
-            'stats' => $stats,
-        ]);
+        return Inertia::render('menu::dashboard/Category/Index', $data);
     }
 
     /**
@@ -72,20 +52,17 @@ class CategoryController extends Controller
      */
     public function create(Request $request): Modal
     {
-        $menus = Menu::where('status', true)->get(['id', 'name']);
-        $selectedMenuId = $request->input('menu_id');
+        $selectedMenuId = $request->input('menu_id') ? (int) $request->input('menu_id') : null;
+        $data = $this->getCategoryCreateDataAction->execute($selectedMenuId);
 
-        // Determine base route based on where user came from
         $baseRoute = $selectedMenuId
             ? 'menu.menus.categories.manage'
             : 'menu.categories.index';
 
         $baseRouteParams = $selectedMenuId ? ['menu' => $selectedMenuId] : [];
 
-        return Inertia::modal('menu::dashboard/Category/Create', [
-            'menus' => $menus,
-            'selectedMenuId' => $selectedMenuId ? (int) $selectedMenuId : null,
-        ])->baseRoute($baseRoute, $baseRouteParams);
+        return Inertia::modal('menu::dashboard/Category/Create', $data)
+            ->baseRoute($baseRoute, $baseRouteParams);
     }
 
     /**
@@ -95,7 +72,6 @@ class CategoryController extends Controller
     {
         $this->createCategoryAction->execute($request->validated());
 
-        // Redirect back to ManageCategories if menu_id is provided
         $menuId = $request->input('menu_id');
         if ($menuId) {
             return redirect()
@@ -113,30 +89,9 @@ class CategoryController extends Controller
      */
     public function show(Category $category): Response
     {
-        $category->load(['products' => function ($query) {
-            $query->orderBy('menu_category_products.sort_order');
-        }]);
+        $data = $this->getCategoryShowDataAction->execute($category);
 
-        // Format products with pivot data
-        $products = $category->products->map(fn ($product) => [
-            'id' => $product->id,
-            'name' => $product->name,
-            'sku' => $product->sku,
-            'price' => $product->price,
-            'sale_price' => $product->sale_price,
-            'status' => $product->status,
-            'image_url' => $product->images[0] ?? null,
-            'pivot' => [
-                'price_override' => $product->pivot->price_override,
-                'sort_order' => $product->pivot->sort_order,
-                'is_available' => $product->pivot->is_available,
-            ],
-        ]);
-
-        return Inertia::render('menu::dashboard/Category/Show', [
-            'category' => (new CategoryResource($category))->resolve(),
-            'products' => $products,
-        ]);
+        return Inertia::render('menu::dashboard/Category/Show', $data);
     }
 
     /**
@@ -144,12 +99,10 @@ class CategoryController extends Controller
      */
     public function edit(Category $category): Modal
     {
-        $menus = Menu::where('status', true)->get(['id', 'name']);
+        $data = $this->getCategoryEditDataAction->execute($category);
 
-        return Inertia::modal('menu::dashboard/Category/Edit', [
-            'category' => new CategoryResource($category),
-            'menus' => $menus,
-        ])->baseRoute('menu.categories.index');
+        return Inertia::modal('menu::dashboard/Category/Edit', $data)
+            ->baseRoute('menu.categories.index');
     }
 
     /**
@@ -189,11 +142,10 @@ class CategoryController extends Controller
     /**
      * Toggle category status.
      */
-    public function toggleStatus(Request $request, Category $category, \Modules\Menu\Actions\Dashboard\V1\ToggleCategoryStatusAction $toggleCategoryStatusAction): RedirectResponse
+    public function toggleStatus(Request $request, Category $category): RedirectResponse
     {
-        $toggleCategoryStatusAction->execute($category, $request->boolean('status'));
+        $this->toggleCategoryStatusAction->execute($category, $request->boolean('status'));
 
         return redirect()->back();
     }
-
 }

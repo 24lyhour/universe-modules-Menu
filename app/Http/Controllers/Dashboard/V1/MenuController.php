@@ -161,10 +161,14 @@ class MenuController extends Controller
      */
     public function categories(Request $request, Menu $menu): Response
     {
-        $perPage = $request->input('per_page', 10);
         $filters = $request->only(['search', 'status']);
 
-        $query = Category::where('menu_id', $menu->id)->withCount('products');
+        $query = Category::where('menu_id', $menu->id)
+            ->with(['products' => function ($q) {
+                $q->orderBy('menu_category_products.sort_order');
+            }])
+            ->withCount('products')
+            ->orderBy('sort_order');
 
         if (!empty($filters['search'])) {
             $query->where('name', 'like', '%' . $filters['search'] . '%');
@@ -174,7 +178,7 @@ class MenuController extends Controller
             $query->where('status', $filters['status'] === '1' || $filters['status'] === 'active');
         }
 
-        $categories = $query->latest()->paginate($perPage);
+        $categories = $query->get();
 
         $stats = [
             'total' => Category::where('menu_id', $menu->id)->count(),
@@ -184,15 +188,7 @@ class MenuController extends Controller
 
         return Inertia::render('menu::dashboard/Menu/ManageCategories', [
             'menu' => (new MenuResource($menu))->resolve(),
-            'categories' => [
-                'data' => CategoryResource::collection($categories)->resolve(),
-                'meta' => [
-                    'current_page' => $categories->currentPage(),
-                    'last_page' => $categories->lastPage(),
-                    'per_page' => $categories->perPage(),
-                    'total' => $categories->total(),
-                ],
-            ],
+            'categories' => CategoryResource::collection($categories)->resolve(),
             'filters' => $filters,
             'stats' => $stats,
         ]);

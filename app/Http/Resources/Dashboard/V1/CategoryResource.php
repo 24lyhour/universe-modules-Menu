@@ -22,6 +22,20 @@ class CategoryResource extends JsonResource
             'sort_order' => $this->sort_order,
             'status' => $this->status,
             'products_count' => $this->whenCounted('products'),
+            'products' => $this->whenLoaded('products', fn () => $this->products->map(fn ($product) => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'sku' => $product->sku,
+                'price' => $product->price,
+                'sale_price' => $product->sale_price,
+                'status' => $product->status,
+                'image_url' => $product->image_url,
+                'pivot' => [
+                    'price_override' => $product->pivot->price_override,
+                    'sort_order' => $product->pivot->sort_order,
+                    'is_available' => $product->pivot->is_available,
+                ],
+            ])),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

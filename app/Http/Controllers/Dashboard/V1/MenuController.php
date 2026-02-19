@@ -83,6 +83,8 @@ class MenuController extends Controller
      */
     public function show(Menu $menu): Response
     {
+        $menu->load(['outlet', 'menuType']);
+
         return Inertia::render('menu::dashboard/Menu/Show', [
             'menu' => (new MenuResource($menu))->resolve(),
         ]);
@@ -93,6 +95,8 @@ class MenuController extends Controller
      */
     public function edit(Menu $menu): Modal
     {
+        $menu->load(['outlet', 'menuType']);
+
         $outlets = Outlet::where('status', 'active')
             ->select('id', 'name')
             ->orderBy('name')
@@ -127,6 +131,8 @@ class MenuController extends Controller
      */
     public function confirmDelete(Menu $menu): Modal
     {
+        $menu->load(['outlet', 'menuType']);
+
         return Inertia::modal('menu::dashboard/Menu/Delete', [
             'menu' => (new MenuResource($menu))->resolve(),
         ])->baseRoute('menu.menus.index');
@@ -161,6 +167,7 @@ class MenuController extends Controller
      */
     public function categories(Request $request, Menu $menu): Response
     {
+        $menu->load(['outlet', 'menuType']);
         $filters = $request->only(['search', 'status']);
 
         $query = Category::where('menu_id', $menu->id)
@@ -199,6 +206,8 @@ class MenuController extends Controller
      */
     public function assignCategories(Menu $menu): Response
     {
+        $menu->load(['outlet', 'menuType']);
+
         // Get categories not assigned to this menu
         $availableCategories = Category::whereNull('menu_id')
             ->orWhere('menu_id', '!=', $menu->id)

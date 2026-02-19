@@ -20,6 +20,7 @@ class MenuCategoryController extends Controller
      */
     public function manageCategories(Request $request, Menu $menu): Response
     {
+        $menu->load(['outlet', 'menuType']);
         $filters = $request->only(['search', 'status']);
 
         $query = Category::where('menu_id', $menu->id)
@@ -105,6 +106,8 @@ class MenuCategoryController extends Controller
      */
     public function assignCategories(Menu $menu): Modal
     {
+        $menu->load(['outlet', 'menuType']);
+
         // Get categories not assigned to any menu or assigned to other menus
         $availableCategories = Category::whereNull('menu_id')
             ->orWhere('menu_id', '!=', $menu->id)

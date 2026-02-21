@@ -44,13 +44,13 @@ class MenuServiceProvider extends ServiceProvider
                 url: route('menu.menus.index'),
                 icon: 'UtensilsCrossed',
                 order: 60,
-                permissions: null,
+                permissions: 'menus.view_any',
                 route: 'menu.*'
             );
 
-            MenuService::addSubmenuItem('primary', 'menu', __('Menus'), route('menu.menus.index'), 10, null, 'menu.menus.*', 'UtensilsCrossed');
-            MenuService::addSubmenuItem('primary', 'menu', __('Categories'), route('menu.categories.index'), 20, null, 'menu.categories.*', 'Layers');
-            MenuService::addSubmenuItem('primary', 'menu', __('Menu Types'), route('menu.menu-types.index'), 30, null, 'menu.menu-types.*', 'ListOrdered');
+            MenuService::addSubmenuItem('primary', 'menu', __('Menus'), route('menu.menus.index'), 10, 'menus.view_any', 'menu.menus.*', 'UtensilsCrossed');
+            MenuService::addSubmenuItem('primary', 'menu', __('Categories'), route('menu.categories.index'), 20, 'categories.view_any', 'menu.categories.*', 'Layers');
+            MenuService::addSubmenuItem('primary', 'menu', __('Menu Types'), route('menu.menu-types.index'), 30, 'menu_types.view_any', 'menu.menu-types.*', 'ListOrdered');
 
         });
     }

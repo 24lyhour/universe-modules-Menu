@@ -91,6 +91,6 @@ const handleCancel = () => {
         @submit="handleSubmit"
         @cancel="handleCancel"
     >
-        <CategoryForm v-model="form" mode="create" :menus="props.menus" />
+        <CategoryForm v-model="form" mode="create" :menus="props.menuList" />
     </ModalForm>
 </template>

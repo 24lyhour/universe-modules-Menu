@@ -17,7 +17,7 @@ class GetCategoryEditDataAction
 
         return [
             'category' => new CategoryResource($category),
-            'menus' => $menus,
+            'menuList' => $menus,
         ];
     }
 }

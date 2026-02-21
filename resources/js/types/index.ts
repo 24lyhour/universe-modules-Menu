@@ -147,13 +147,13 @@ export interface CategoryIndexProps {
 }
 
 export interface CategoryCreateProps {
-    menus: MenuOption[];
+    menuList: MenuOption[];
     selectedMenuId?: number | null;
 }
 
 export interface CategoryEditProps {
     category: Category;
-    menus: MenuOption[];
+    menuList: MenuOption[];
 }
 
 export interface CategoryDeleteProps {

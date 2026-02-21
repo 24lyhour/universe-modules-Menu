@@ -14,7 +14,7 @@ class GetCategoryCreateDataAction
         $menus = Menu::where('status', true)->get(['id', 'name']);
 
         return [
-            'menus' => $menus,
+            'menuList' => $menus,
             'selectedMenuId' => $selectedMenuId,
         ];
     }

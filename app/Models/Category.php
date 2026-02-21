@@ -2,6 +2,7 @@
 
 namespace Modules\Menu\Models;
 
+use App\Traits\BelongsToMenu;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Modules\Product\Models\Product;
 
 class Category extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToMenu;
 
     /**
      * The table associated with the model.

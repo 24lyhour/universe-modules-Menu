@@ -2,13 +2,14 @@
 
 namespace Modules\Menu\Models;
 
+use App\Traits\BelongsToOutlet;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use \Modules\Outlet\Models\Outlet;
 
 class MenuType extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToOutlet;
 
     /**
      * The attributes that are mass assignable.

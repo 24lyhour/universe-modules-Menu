@@ -10,7 +10,7 @@ use Modules\Menu\Http\Controllers\Dashboard\V1\MenuStatusController;
 use Modules\Menu\Http\Controllers\Dashboard\V1\MenuTypeController;
 use Modules\Menu\Http\Controllers\Dashboard\V1\MenuTypeStatusController;
 
-Route::middleware(['auth', 'verified'])->prefix('dashboard')->name('menu.')->group(function () {
+Route::middleware(['auth', 'verified', 'auto.permission'])->prefix('dashboard')->name('menu.')->group(function () {
     // Menus
     Route::resource('menus', MenuController::class)->names('menus');
     Route::get('menus/{menu}/delete', [MenuController::class, 'confirmDelete'])->name('menus.confirm-delete');

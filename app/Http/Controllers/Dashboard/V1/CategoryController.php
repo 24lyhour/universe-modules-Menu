@@ -30,7 +30,9 @@ class CategoryController extends Controller
         protected CreateCategoryAction $createCategoryAction,
         protected UpdateCategoryAction $updateCategoryAction,
         protected DeleteCategoryAction $deleteCategoryAction,
-    ) {}
+    ) {
+        // Authorization is handled by 'auto.permission' middleware in routes
+    }
 
     /**
      * Display a listing of categories.

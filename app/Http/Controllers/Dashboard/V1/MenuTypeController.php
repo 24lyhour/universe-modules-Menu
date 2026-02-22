@@ -28,7 +28,9 @@ class MenuTypeController extends Controller
         protected CreateMenuTypeAction $createMenuTypeAction,
         protected UpdateMenuTypeAction $updateMenuTypeAction,
         protected DeleteMenuTypeAction $deleteMenuTypeAction,
-    ) {}
+    ) {
+        // Authorization is handled by 'auto.permission' middleware in routes
+    }
 
     /**
      * Display a listing of menu types.

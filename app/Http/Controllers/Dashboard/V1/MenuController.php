@@ -24,7 +24,9 @@ class MenuController extends Controller
 {
     public function __construct(
         private MenuService $menuService
-    ) {}
+    ) {
+        // Authorization is handled by 'auto.permission' middleware in routes
+    }
 
     /**
      * Display a listing of menus.

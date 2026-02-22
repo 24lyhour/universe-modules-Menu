@@ -2,14 +2,14 @@
 
 namespace Modules\Menu\Models;
 
-use App\Traits\BelongsToTenant;
+use App\Traits\BelongsToOutlet;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Menu\Database\Factories\MenuFactory;
 
 class Menu extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use HasFactory, BelongsToOutlet;
 
     /**
      * The attributes that are mass assignable.

@@ -36,7 +36,7 @@ const form = useForm<CategoryFormData>({
 // Use shared validation composable
 const { validateForm, validateAndSubmit, createIsFormInvalid } = useFormValidation(
     categorySchema,
-    ['name'] // Required fields
+    ['name', 'menu_id', 'product_type'] // Required fields
 );
 
 // Get form data for validation
@@ -51,7 +51,9 @@ const getFormData = () => ({
 });
 
 // Watch form changes to validate in real-time
-watch(() => form.name, () => validateForm(getFormData()));
+watch([() => form.name, () => form.menu_id, () => form.product_type], () => {
+    validateForm(getFormData());
+});
 
 // Check if form is valid for submit button state
 const isFormInvalid = createIsFormInvalid(getFormData);

@@ -28,6 +28,7 @@ const form = useForm<CategoryFormData>({
     description: '',
     menu_id: props.selectedMenuId ?? null,
     image_url: '',
+    product_type: null,
     sort_order: 0,
     status: true,
 });
@@ -35,7 +36,7 @@ const form = useForm<CategoryFormData>({
 // Use shared validation composable
 const { validateForm, validateAndSubmit, createIsFormInvalid } = useFormValidation(
     categorySchema,
-    ['name'] // Required fields
+    ['name', 'menu_id', 'product_type'] // Required fields
 );
 /**
  * 
@@ -47,12 +48,13 @@ const getFormData = () => ({
     description: form.description || null,
     menu_id: form.menu_id,
     image_url: form.image_url || null,
+    product_type: form.product_type,
     sort_order: form.sort_order,
     status: form.status,
 });
 
-watch(() => form.name, () => {
-    if (form.name) validateForm(getFormData());
+watch([() => form.name, () => form.menu_id, () => form.product_type], () => {
+    validateForm(getFormData());
 });
 
 // Check if form is valid for submit button state

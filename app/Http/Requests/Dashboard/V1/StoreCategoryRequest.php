@@ -22,9 +22,9 @@ class StoreCategoryRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'menu_id' => ['nullable', 'exists:menus,id'],
+            'menu_id' => ['required', 'exists:menus,id'],
             'image_url' => ['nullable', 'string'],
-            'product_type' => ['nullable', 'string', 'in:phone,computer,tablet,accessory,other'],
+            'product_type' => ['required', 'string', 'in:phone,computer,tablet,accessory,other'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'status' => ['required', 'boolean'],
         ];
@@ -39,7 +39,9 @@ class StoreCategoryRequest extends FormRequest
             'name.required' => 'Category name is required.',
             'name.max' => 'Category name must be less than 255 characters.',
             'description.max' => 'Description must be less than 1000 characters.',
+            'menu_id.required' => 'Menu is required.',
             'menu_id.exists' => 'The selected menu does not exist.',
+            'product_type.required' => 'Product type is required.',
             'sort_order.min' => 'Sort order must be at least 0.',
         ];
     }

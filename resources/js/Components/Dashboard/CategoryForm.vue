@@ -2,7 +2,6 @@
 import { computed } from 'vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { ImageUpload } from '@/components/shared';
@@ -15,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import type { InertiaForm } from '@inertiajs/vue3';
 import type { CategoryFormData, MenuOption, ProductType } from '@menu/types';
+import TiptapEditor from '@/components/TiptapEditor.vue';
 
 // Product type options
 const productTypeOptions: { value: ProductType; label: string }[] = [
@@ -25,8 +25,6 @@ const productTypeOptions: { value: ProductType; label: string }[] = [
     { value: 'other', label: 'Other' },
 ];
 
-// Placeholder value for "None" option
-const NONE_VALUE = '__none__';
 
 interface Props {
     mode?: 'create' | 'edit';
@@ -70,9 +68,9 @@ const selectedMenu = computed({
 
 // Handle product type selection
 const selectedProductType = computed({
-    get: () => model.value.product_type ?? NONE_VALUE,
+    get: () => model.value.product_type ?? undefined,
     set: (value: string | number | boolean | bigint | Record<string, unknown> | null | undefined) => {
-        if (typeof value === 'string' && value !== '' && value !== NONE_VALUE) {
+        if (typeof value === 'string' && value !== '') {
             model.value.product_type = value as ProductType;
         } else {
             model.value.product_type = null;
@@ -109,11 +107,12 @@ const selectedProductType = computed({
 
                 <div class="space-y-2 sm:col-span-2">
                     <Label for="description">Description</Label>
-                    <Textarea
+                    <TiptapEditor
                         id="description"
                         v-model="model.description"
                         placeholder="Enter category description"
-                        rows="3"
+                        min-height="250px"
+                        max-height="400"
                     />
                     <p v-if="model.errors.description" class="text-sm text-destructive">
                         {{ model.errors.description }}
@@ -142,15 +141,12 @@ const selectedProductType = computed({
                 </div>
 
                 <div class="space-y-2">
-                    <Label for="product_type">Product Type</Label>
+                    <Label for="product_type">Product Type <span class="text-destructive">*</span></Label>
                     <Select v-model="selectedProductType">
                         <SelectTrigger>
                             <SelectValue placeholder="Select product type" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem :value="NONE_VALUE">
-                                All Types
-                            </SelectItem>
                             <SelectItem
                                 v-for="option in productTypeOptions"
                                 :key="option.value"

@@ -2,7 +2,6 @@
 import { computed } from 'vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -15,6 +14,7 @@ import {
 import { ImageUpload } from '@/components/shared';
 import type { InertiaForm } from '@inertiajs/vue3';
 import type { MenuFormData, OutletOption, MenuTypeOption } from '../../types';
+import TiptapEditor from '@/components/TiptapEditor.vue';
 
 interface Props {
     mode?: 'create' | 'edit';
@@ -90,7 +90,7 @@ const isActive = computed({
                 </div>
 
                 <div class="space-y-2">
-                    <Label for="outlet_id">Outlet</Label>
+                    <Label for="outlet_id">Outlet <span class="text-destructive">*</span></Label>
                     <Select v-model="selectedOutlet">
                         <SelectTrigger id="outlet_id">
                             <SelectValue placeholder="Select an outlet" />
@@ -111,7 +111,7 @@ const isActive = computed({
                 </div>
 
                 <div class="space-y-2">
-                    <Label for="menu_type_id">Menu Type</Label>
+                    <Label for="menu_type_id">Menu Type <span class="text-destructive">*</span></Label>
                     <Select v-model="selectedMenuType">
                         <SelectTrigger id="menu_type_id">
                             <SelectValue placeholder="Select a menu type" />
@@ -133,11 +133,11 @@ const isActive = computed({
 
                 <div class="space-y-2 sm:col-span-2">
                     <Label for="description">Description</Label>
-                    <Textarea
-                        id="description"
-                        v-model="model.description"
-                        placeholder="Enter menu description"
-                        rows="3"
+                    <TiptapEditor
+                      v-model="model.description"
+                        placeholder="Enter Menu Description...."
+                            min-height="200px"
+                            max-height="400px"
                     />
                     <p v-if="model.errors.description" class="text-sm text-destructive">
                         {{ model.errors.description }}

@@ -12,9 +12,14 @@ export const categorySchema = z.object({
         .max(1000, 'Description must be less than 1000 characters')
         .optional()
         .nullable(),
-    menu_id: z.number().nullable().optional(),
+    menu_id: z
+        .number({ required_error: 'Menu is required' })
+        .int()
+        .positive('Menu is required'),
     image_url: z.string().optional().nullable(),
-    product_type: z.enum(['phone', 'computer', 'tablet', 'accessory', 'other']).nullable().optional(),
+    product_type: z.enum(['phone', 'computer', 'tablet', 'accessory', 'other'], {
+        required_error: 'Product type is required',
+    }),
     sort_order: z.number().min(0).default(0),
     status: z.boolean().default(true),
 });

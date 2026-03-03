@@ -72,7 +72,7 @@ const isFormInvalid = createIsFormInvalid(getFormData);
 
 const handleSubmit = () => {
     validateAndSubmit(getFormData(), form, () => {
-        form.put(`/dashboard/menus/${props.menu.id}`, {
+        form.put(`/dashboard/menus/${props.menu.uuid}`, {
             onSuccess: () => {
                 toast.success('Menu updated successfully.');
                 setTimeout(() => {

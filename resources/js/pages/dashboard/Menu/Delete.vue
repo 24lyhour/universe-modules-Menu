@@ -40,7 +40,7 @@ const handleConfirmedChange = (value: boolean | 'indeterminate') => {
 };
 
 const handleSubmit = () => {
-    form.delete(`/dashboard/menus/${props.menu.id}`, {
+    form.delete(`/dashboard/menus/${props.menu.uuid}`, {
         onSuccess: () => {
             toast.success('Menu deleted successfully.');
             setTimeout(() => {

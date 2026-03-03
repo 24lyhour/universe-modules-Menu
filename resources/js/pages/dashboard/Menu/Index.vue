@@ -15,7 +15,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, UtensilsCrossed, CheckCircle, XCircle, Search, Eye, Pencil, Trash2, Layers, FolderTree, Package, ExternalLink, Clock } from 'lucide-vue-next';
+import { Plus, UtensilsCrossed, CheckCircle, XCircle, Search, Eye, Pencil, Trash2, Layers, FolderTree, Package, ExternalLink, Clock, CalendarClock } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 import type { MenuIndexProps, Menu } from '@menu/types';
 
@@ -60,6 +60,10 @@ const columns: TableColumn<Menu>[] = [
         key: 'products_count',
         label: 'Products',
         render: (menu) => String(menu.products_count),
+    },
+    {
+        key: 'schedule',
+        label: 'Schedule',
     },
     {
         key: 'status',
@@ -246,6 +250,26 @@ const handleStatusToggle = (menu: Menu, newStatus: boolean) => {
                         <Package class="h-3 w-3" />
                         {{ item.products_count }}
                         <ExternalLink class="h-3 w-3 opacity-50" />
+                    </Badge>
+                </template>
+                <template #cell-schedule="{ item }">
+                    <Badge
+                        v-if="item.schedule_status"
+                        variant="default"
+                        class="gap-1.5 cursor-pointer hover:bg-primary/80 transition-colors"
+                        @click.stop="router.visit(`/dashboard/menus/${item.uuid}/schedule`)"
+                    >
+                        <CalendarClock class="h-3 w-3" />
+                        {{ item.schedule_mode === 'always' ? 'Always' : item.schedule_start_time ? `${item.schedule_start_time} - ${item.schedule_end_time}` : 'Configured' }}
+                    </Badge>
+                    <Badge
+                        v-else
+                        variant="outline"
+                        class="gap-1.5 cursor-pointer hover:bg-muted transition-colors text-muted-foreground"
+                        @click.stop="router.visit(`/dashboard/menus/${item.uuid}/schedule`)"
+                    >
+                        <Clock class="h-3 w-3" />
+                        Not Set
                     </Badge>
                 </template>
                 <template #cell-status="{ item }">

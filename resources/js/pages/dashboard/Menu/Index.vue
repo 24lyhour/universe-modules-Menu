@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, UtensilsCrossed, CheckCircle, XCircle, Search, Eye, Pencil, Trash2, Layers, FolderTree, Package, ExternalLink, Clock, CalendarClock } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 import type { MenuIndexProps, Menu } from '@menu/types';
+import { toast } from '@/composables/useToast';
 
 // Persistent layout for momentum-modal
 defineOptions({
@@ -155,14 +156,18 @@ const handleStatusToggle = (menu: Menu, newStatus: boolean) => {
     }, {
         preserveState: true,
         preserveScroll: true,
+        onSuccess: () => {
+            toast.success(`Menu ${newStatus ? 'activated' : 'deactivated'} successfully.`);
+        },
     });
 };
 </script>
 
 <template>
-    <Head title="Menus" />
+    <div>
+        <Head title="Menus" />
 
-    <div class="flex h-full flex-1 flex-col gap-6 p-6">
+        <div class="flex h-full flex-1 flex-col gap-6 p-6">
         <!-- Stats -->
         <div class="grid gap-4 md:grid-cols-3">
             <StatsCard
@@ -284,6 +289,7 @@ const handleStatusToggle = (menu: Menu, newStatus: boolean) => {
                     </div>
                 </template>
             </TableReusable>
+        </div>
         </div>
     </div>
 </template>

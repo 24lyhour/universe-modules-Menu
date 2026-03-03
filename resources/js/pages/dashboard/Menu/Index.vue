@@ -15,9 +15,10 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, UtensilsCrossed, CheckCircle, XCircle, Search, Eye, Pencil, Trash2, Layers, FolderTree, Package, ExternalLink } from 'lucide-vue-next';
+import { Plus, UtensilsCrossed, CheckCircle, XCircle, Search, Eye, Pencil, Trash2, Layers, FolderTree, Package, ExternalLink, Clock } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 import type { MenuIndexProps, Menu } from '@menu/types';
+import ScheduleManage from '@menu/Components/Dashboard/ScheduleManage.vue';
 
 const props = defineProps<MenuIndexProps>();
 
@@ -28,6 +29,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const search = ref(props.filters.search || '');
 const statusFilter = ref(props.filters.status || 'all');
+
+// Schedule modal state
+const scheduleModalOpen = ref(false);
+const selectedMenu = ref<Menu | null>(null);
 
 const columns: TableColumn<Menu>[] = [
     {
@@ -77,6 +82,11 @@ const actions: TableAction<Menu>[] = [
         label: 'Manage Categories',
         icon: Layers,
         onClick: (menu) => router.visit(`/dashboard/menus/${menu.id}/categories/manage`),
+    },
+    {
+        label: 'Schedule',
+        icon: Clock,
+        onClick: (menu) => openScheduleModal(menu),
     },
     {
         label: 'Delete',
@@ -141,6 +151,16 @@ const handleStatusToggle = (menu: Menu, newStatus: boolean) => {
         preserveState: true,
         preserveScroll: true,
     });
+};
+
+// Schedule modal functions
+const openScheduleModal = (menu: Menu) => {
+    selectedMenu.value = menu;
+    scheduleModalOpen.value = true;
+};
+
+const handleScheduleSaved = () => {
+    selectedMenu.value = null;
 };
 </script>
 
@@ -252,5 +272,12 @@ const handleStatusToggle = (menu: Menu, newStatus: boolean) => {
                 </TableReusable>
             </div>
         </div>
+
+        <!-- Schedule Manage -->
+        <ScheduleManage
+            v-model:open="scheduleModalOpen"
+            :menu="selectedMenu"
+            @saved="handleScheduleSaved"
+        />
     </AppLayout>
 </template>

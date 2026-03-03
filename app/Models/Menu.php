@@ -12,6 +12,14 @@ class Menu extends Model
     use HasFactory, BelongsToOutlet;
 
     /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
+    }
+
+    /**
      * The attributes that are mass assignable.
      */
     protected $fillable = [

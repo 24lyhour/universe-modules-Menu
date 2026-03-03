@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, type VNode } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { TableReusable, StatsCard } from '@/components/shared';
@@ -18,21 +18,22 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, UtensilsCrossed, CheckCircle, XCircle, Search, Eye, Pencil, Trash2, Layers, FolderTree, Package, ExternalLink, Clock } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 import type { MenuIndexProps, Menu } from '@menu/types';
-import ScheduleManage from '@menu/Components/Dashboard/ScheduleManage.vue';
+
+// Persistent layout for momentum-modal
+defineOptions({
+    layout: (h: (type: unknown, props: unknown, children: unknown) => VNode, page: VNode) =>
+        h(AppLayout, {
+            breadcrumbs: [
+                { title: 'Dashboard', href: '/dashboard' },
+                { title: 'Menus', href: '/dashboard/menus' },
+            ] as BreadcrumbItem[]
+        }, () => page),
+});
 
 const props = defineProps<MenuIndexProps>();
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Menus', href: '/dashboard/menus' },
-];
-
 const search = ref(props.filters.search || '');
 const statusFilter = ref(props.filters.status || 'all');
-
-// Schedule modal state
-const scheduleModalOpen = ref(false);
-const selectedMenu = ref<Menu | null>(null);
 
 const columns: TableColumn<Menu>[] = [
     {
@@ -71,27 +72,27 @@ const actions: TableAction<Menu>[] = [
     {
         label: 'View',
         icon: Eye,
-        onClick: (menu) => router.visit(`/dashboard/menus/${menu.id}`),
+        onClick: (menu) => router.visit(`/dashboard/menus/${menu.uuid}`),
     },
     {
         label: 'Edit',
         icon: Pencil,
-        onClick: (menu) => router.visit(`/dashboard/menus/${menu.id}/edit`),
+        onClick: (menu) => router.visit(`/dashboard/menus/${menu.uuid}/edit`),
     },
     {
         label: 'Manage Categories',
         icon: Layers,
-        onClick: (menu) => router.visit(`/dashboard/menus/${menu.id}/categories/manage`),
+        onClick: (menu) => router.visit(`/dashboard/menus/${menu.uuid}/categories/manage`),
     },
     {
         label: 'Schedule',
         icon: Clock,
-        onClick: (menu) => openScheduleModal(menu),
+        onClick: (menu) => router.visit(`/dashboard/menus/${menu.uuid}/schedule`),
     },
     {
         label: 'Delete',
         icon: Trash2,
-        onClick: (menu) => router.visit(`/dashboard/menus/${menu.id}/delete`),
+        onClick: (menu) => router.visit(`/dashboard/menus/${menu.uuid}/delete`),
         variant: 'destructive',
         separator: true,
     },
@@ -141,143 +142,124 @@ const handleCreate = () => {
 
 /**
  * handleStatusToggle
- * @param menu 
- * @param newStatus 
+ * @param menu
+ * @param newStatus
  */
 const handleStatusToggle = (menu: Menu, newStatus: boolean) => {
-    router.put(`/dashboard/menus/${menu.id}/toggle-status`, {
+    router.put(`/dashboard/menus/${menu.uuid}/toggle-status`, {
         status: newStatus,
     }, {
         preserveState: true,
         preserveScroll: true,
     });
 };
-
-// Schedule modal functions
-const openScheduleModal = (menu: Menu) => {
-    selectedMenu.value = menu;
-    scheduleModalOpen.value = true;
-};
-
-const handleScheduleSaved = () => {
-    selectedMenu.value = null;
-};
 </script>
 
 <template>
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <Head title="Menus" />
+    <Head title="Menus" />
 
-        <div class="flex h-full flex-1 flex-col gap-6 p-6">
-            <!-- Stats -->
-            <div class="grid gap-4 md:grid-cols-3">
-                <StatsCard
-                    title="Total Menus"
-                    :value="props.stats.total"
-                    :icon="UtensilsCrossed"
-                />
-                <StatsCard
-                    title="Active"
-                    :value="props.stats.active"
-                    :icon="CheckCircle"
-                    variant="success"
-                />
-                <StatsCard
-                    title="Inactive"
-                    :value="props.stats.inactive"
-                    :icon="XCircle"
-                    variant="warning"
-                />
-            </div>
-
-            <!-- Main Content -->
-            <div class="flex flex-col gap-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-lg font-semibold">Menus</h2>
-                        <p class="text-sm text-muted-foreground">Manage your menus</p>
-                    </div>
-                    <Button @click="handleCreate">
-                        <Plus class="mr-2 h-4 w-4" />
-                        Add Menu
-                    </Button>
-                </div>
-
-                <!-- Filters -->
-                <div class="flex items-center gap-4">
-                    <div class="relative flex-1 max-w-sm">
-                        <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            v-model="search"
-                            placeholder="Search menus..."
-                            class="pl-9"
-                            @keyup.enter="handleSearch"
-                        />
-                    </div>
-                    <Select v-model="statusFilter">
-                        <SelectTrigger class="w-[150px]">
-                            <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Status</SelectItem>
-                            <SelectItem value="1">Active</SelectItem>
-                            <SelectItem value="0">Inactive</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <!-- Table -->
-                <TableReusable
-                    :data="props.menuItems.data"
-                    :columns="columns"
-                    :actions="actions"
-                    :pagination="pagination"
-                    :searchable="false"
-                    @page-change="handlePageChange"
-                    @per-page-change="handlePerPageChange"
-                >
-                    <template #cell-categories_count="{ item }">
-                        <Badge
-                            variant="secondary"
-                            class="gap-1.5 cursor-pointer hover:bg-secondary/80 transition-colors"
-                            @click.stop="router.visit(`/dashboard/menus/${item.id}/categories/manage`)"
-                        >
-                            <FolderTree class="h-3 w-3" />
-                            {{ item.categories_count }}
-                            <ExternalLink class="h-3 w-3 opacity-50" />
-                        </Badge>
-                    </template>
-                    <template #cell-products_count="{ item }">
-                        <Badge
-                            variant="outline"
-                            class="gap-1.5 cursor-pointer hover:bg-muted transition-colors"
-                            @click.stop="router.visit(`/dashboard/menus/${item.id}/categories/manage`)"
-                        >
-                            <Package class="h-3 w-3" />
-                            {{ item.products_count }}
-                            <ExternalLink class="h-3 w-3 opacity-50" />
-                        </Badge>
-                    </template>
-                    <template #cell-status="{ item }">
-                        <div class="flex items-center gap-2" @click.stop>
-                            <Switch
-                                :model-value="item.status"
-                                @update:model-value="handleStatusToggle(item, $event)"
-                            />
-                            <span class="text-sm text-muted-foreground">
-                                {{ item.status ? 'Active' : 'Inactive' }}
-                            </span>
-                        </div>
-                    </template>
-                </TableReusable>
-            </div>
+    <div class="flex h-full flex-1 flex-col gap-6 p-6">
+        <!-- Stats -->
+        <div class="grid gap-4 md:grid-cols-3">
+            <StatsCard
+                title="Total Menus"
+                :value="props.stats.total"
+                :icon="UtensilsCrossed"
+            />
+            <StatsCard
+                title="Active"
+                :value="props.stats.active"
+                :icon="CheckCircle"
+                variant="success"
+            />
+            <StatsCard
+                title="Inactive"
+                :value="props.stats.inactive"
+                :icon="XCircle"
+                variant="warning"
+            />
         </div>
 
-        <!-- Schedule Manage -->
-        <ScheduleManage
-            v-model:open="scheduleModalOpen"
-            :menu="selectedMenu"
-            @saved="handleScheduleSaved"
-        />
-    </AppLayout>
+        <!-- Main Content -->
+        <div class="flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold">Menus</h2>
+                    <p class="text-sm text-muted-foreground">Manage your menus</p>
+                </div>
+                <Button @click="handleCreate">
+                    <Plus class="mr-2 h-4 w-4" />
+                    Add Menu
+                </Button>
+            </div>
+
+            <!-- Filters -->
+            <div class="flex items-center gap-4">
+                <div class="relative flex-1 max-w-sm">
+                    <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        v-model="search"
+                        placeholder="Search menus..."
+                        class="pl-9"
+                        @keyup.enter="handleSearch"
+                    />
+                </div>
+                <Select v-model="statusFilter">
+                    <SelectTrigger class="w-[150px]">
+                        <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="1">Active</SelectItem>
+                        <SelectItem value="0">Inactive</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
+            <!-- Table -->
+            <TableReusable
+                :data="props.menuItems.data"
+                :columns="columns"
+                :actions="actions"
+                :pagination="pagination"
+                :searchable="false"
+                @page-change="handlePageChange"
+                @per-page-change="handlePerPageChange"
+            >
+                <template #cell-categories_count="{ item }">
+                    <Badge
+                        variant="secondary"
+                        class="gap-1.5 cursor-pointer hover:bg-secondary/80 transition-colors"
+                        @click.stop="router.visit(`/dashboard/menus/${item.uuid}/categories/manage`)"
+                    >
+                        <FolderTree class="h-3 w-3" />
+                        {{ item.categories_count }}
+                        <ExternalLink class="h-3 w-3 opacity-50" />
+                    </Badge>
+                </template>
+                <template #cell-products_count="{ item }">
+                    <Badge
+                        variant="outline"
+                        class="gap-1.5 cursor-pointer hover:bg-muted transition-colors"
+                        @click.stop="router.visit(`/dashboard/menus/${item.uuid}/categories/manage`)"
+                    >
+                        <Package class="h-3 w-3" />
+                        {{ item.products_count }}
+                        <ExternalLink class="h-3 w-3 opacity-50" />
+                    </Badge>
+                </template>
+                <template #cell-status="{ item }">
+                    <div class="flex items-center gap-2" @click.stop>
+                        <Switch
+                            :model-value="item.status"
+                            @update:model-value="handleStatusToggle(item, $event)"
+                        />
+                        <span class="text-sm text-muted-foreground">
+                            {{ item.status ? 'Active' : 'Inactive' }}
+                        </span>
+                    </div>
+                </template>
+            </TableReusable>
+        </div>
+    </div>
 </template>

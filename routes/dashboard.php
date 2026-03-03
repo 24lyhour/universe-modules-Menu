@@ -16,7 +16,8 @@ Route::middleware(['auth', 'verified', 'auto.permission'])->prefix('dashboard')-
     Route::resource('menus', MenuController::class)->names('menus');
     Route::get('menus/{menu}/delete', [MenuController::class, 'confirmDelete'])->name('menus.confirm-delete');
     Route::put('menus/{menu}/toggle-status', MenuStatusController::class)->name('menus.toggle-status');
-    Route::put('menus/{menu}/schedule', MenuScheduleController::class)->name('menus.update-schedule');
+    Route::get('menus/{menu}/schedule', [MenuScheduleController::class, 'show'])->name('menus.schedule');
+    Route::put('menus/{menu}/schedule', [MenuScheduleController::class, 'update'])->name('menus.update-schedule');
     Route::get('menus/{menu}/categories/manage', [MenuCategoryController::class, 'manageCategories'])->name('menus.categories.manage');
     Route::post('menus/{menu}/categories/reorder', [MenuCategoryController::class, 'reorderCategories'])->name('menus.categories.reorder');
     Route::get('menus/{menu}/categories/assign', [MenuCategoryController::class, 'assignCategories'])->name('menus.categories.assign');

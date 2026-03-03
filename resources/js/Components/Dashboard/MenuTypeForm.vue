@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import TiptapEditor from '@/components/TiptapEditor.vue';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -80,7 +80,7 @@ const isActive = computed({
                 </div>
 
                 <div class="space-y-2 sm:col-span-2">
-                    <Label for="outlet_id">Outlet</Label>
+                    <Label for="outlet_id">Outlet <span class="text-destructive">*</span></Label>
                     <Select v-model="selectedOutlet">
                         <SelectTrigger id="outlet_id">
                             <SelectValue placeholder="Select an outlet" />
@@ -102,11 +102,11 @@ const isActive = computed({
 
                 <div class="space-y-2 sm:col-span-2">
                     <Label for="description">Description</Label>
-                    <Textarea
-                        id="description"
+                    <TiptapEditor
                         v-model="model.description"
-                        placeholder="Enter menu type description"
-                        rows="3"
+                        placeholder="Enter menu type description..."
+                        min-height="150px"
+                        max-height="300px"
                     />
                     <p v-if="model.errors.description" class="text-sm text-destructive">
                         {{ model.errors.description }}

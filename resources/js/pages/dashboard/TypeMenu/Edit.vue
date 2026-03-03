@@ -35,7 +35,7 @@ const form = useForm<MenuTypeFormData>({
 // Use shared validation composable
 const { validateForm, validateAndSubmit, createIsFormInvalid } = useFormValidation(
     menuTypeSchema,
-    ['name'] // Required fields
+    ['name', 'outlet_id'] // Required fields
 );
 
 // Get form data for validation
@@ -49,7 +49,9 @@ const getFormData = () => ({
 });
 
 // Watch form changes to validate in real-time
-watch(() => form.name, () => validateForm(getFormData()));
+watch([() => form.name, () => form.outlet_id], () => {
+    validateForm(getFormData());
+});
 
 // Check if form is valid for submit button state
 const isFormInvalid = createIsFormInvalid(getFormData);

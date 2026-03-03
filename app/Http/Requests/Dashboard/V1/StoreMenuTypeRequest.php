@@ -17,7 +17,7 @@ class StoreMenuTypeRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'image_url' => ['nullable', 'string'],
-            'outlet_id' => ['nullable', 'integer', 'exists:outlets,id'],
+            'outlet_id' => ['required', 'integer', 'exists:outlets,id'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'status' => ['required', 'boolean'],
         ];

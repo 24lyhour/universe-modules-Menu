@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('menu_categories', function (Blueprint $table) {
-            $table->enum('product_type', ['phone', 'computer', 'tablet', 'accessory', 'other'])->nullable()->after('description');
+            $table->string('product_type')->nullable()->after('description');
             $table->index('product_type');
         });
     }

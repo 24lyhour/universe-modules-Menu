@@ -25,6 +25,7 @@ class CategoryResource extends JsonResource
             'products_count' => $this->whenCounted('products'),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
+            'deleted_at' => $this->deleted_at?->toIso8601String(),
         ];
     }
 }

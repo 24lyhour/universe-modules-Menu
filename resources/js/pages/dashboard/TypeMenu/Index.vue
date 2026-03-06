@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, Link } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { TableReusable, StatsCard } from '@/components/shared';
+import { TableReusable, StatsCard, ButtonGroup } from '@/components/shared';
 import type { TableColumn, TableAction, PaginationData } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +14,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Plus, ListOrdered, CheckCircle, XCircle, Search, Eye, Pencil, Trash2 } from 'lucide-vue-next';
+import { Plus, ListOrdered, CheckCircle, XCircle, Search, Eye, Pencil, Trash2, Download, Upload, Database, X } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 import type { MenuTypeIndexProps, MenuType } from '@menu/types';
 
@@ -28,6 +28,14 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const search = ref(props.filters.search || '');
 const statusFilter = ref(props.filters.status || 'all');
+
+// Check if any filters are active
+const hasActiveFilters = computed(() => {
+    return !!(
+        search.value ||
+        (statusFilter.value !== 'all' && statusFilter.value !== '')
+    );
+});
 
 const columns: TableColumn<MenuType>[] = [
     {
@@ -68,6 +76,7 @@ const actions: TableAction<MenuType>[] = [
         icon: Trash2,
         onClick: (menuType) => router.visit(`/dashboard/menu-types/${menuType.id}/delete`),
         variant: 'destructive',
+        separator: true,
     },
 ];
 
@@ -113,6 +122,19 @@ const handleCreate = () => {
     router.visit('/dashboard/menu-types/create');
 };
 
+const handleExport = () => {
+    const params = new URLSearchParams();
+    if (search.value) params.append('search', search.value);
+    if (statusFilter.value && statusFilter.value !== 'all') params.append('status', statusFilter.value);
+    window.location.href = `/dashboard/menu-types/export?${params.toString()}`;
+};
+
+const handleClearFilters = () => {
+    search.value = '';
+    statusFilter.value = 'all';
+    router.get('/dashboard/menu-types', {}, { preserveState: true, preserveScroll: true });
+};
+
 const handleStatusToggle = (menuType: MenuType, newStatus: boolean) => {
     router.put(`/dashboard/menu-types/${menuType.id}/toggle-status`, {
         status: newStatus,
@@ -128,8 +150,44 @@ const handleStatusToggle = (menuType: MenuType, newStatus: boolean) => {
         <Head title="Menu Types" />
 
         <div class="flex h-full flex-1 flex-col gap-6 p-6">
+            <!-- Header -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">Menu Types</h1>
+                    <p class="text-muted-foreground">Manage your menu types</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <ButtonGroup>
+                        <Button variant="default">
+                            <Database class="mr-2 h-4 w-4" />
+                            All
+                        </Button>
+                        <Button variant="outline" as-child>
+                            <Link href="/dashboard/menu-types/trash">
+                                <Trash2 class="mr-2 h-4 w-4" />
+                                Trash
+                            </Link>
+                        </Button>
+                    </ButtonGroup>
+                    <Button variant="outline" @click="handleExport">
+                        <Download class="mr-2 h-4 w-4" />
+                        Export
+                    </Button>
+                    <Button variant="outline" as-child>
+                        <Link href="/dashboard/menu-types/import">
+                            <Upload class="mr-2 h-4 w-4" />
+                            Import
+                        </Link>
+                    </Button>
+                    <Button @click="handleCreate">
+                        <Plus class="mr-2 h-4 w-4" />
+                        Add Menu Type
+                    </Button>
+                </div>
+            </div>
+
             <!-- Stats -->
-            <div class="grid gap-4 md:grid-cols-3">
+            <div class="grid gap-4 md:grid-cols-4">
                 <StatsCard
                     title="Total Types"
                     :value="props.stats.total"
@@ -147,21 +205,16 @@ const handleStatusToggle = (menuType: MenuType, newStatus: boolean) => {
                     :icon="XCircle"
                     variant="warning"
                 />
+                <StatsCard
+                    title="In Trash"
+                    :value="props.stats.trashed ?? 0"
+                    :icon="Trash2"
+                    variant="destructive"
+                />
             </div>
 
             <!-- Main Content -->
             <div class="flex flex-col gap-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-lg font-semibold">Menu Types</h2>
-                        <p class="text-sm text-muted-foreground">Manage your menu types</p>
-                    </div>
-                    <Button @click="handleCreate">
-                        <Plus class="mr-2 h-4 w-4" />
-                        Add Menu Type
-                    </Button>
-                </div>
-
                 <!-- Filters -->
                 <div class="flex items-center gap-4">
                     <div class="relative flex-1 max-w-sm">
@@ -183,6 +236,17 @@ const handleStatusToggle = (menuType: MenuType, newStatus: boolean) => {
                             <SelectItem value="0">Inactive</SelectItem>
                         </SelectContent>
                     </Select>
+                    <!-- Clear Filters Button -->
+                    <Button
+                        v-if="hasActiveFilters"
+                        variant="ghost"
+                        size="sm"
+                        @click="handleClearFilters"
+                        class="text-muted-foreground hover:text-foreground"
+                    >
+                        <X class="mr-1 h-4 w-4" />
+                        Clear Filters
+                    </Button>
                 </div>
 
                 <!-- Table -->

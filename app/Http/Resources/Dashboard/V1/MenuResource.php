@@ -34,6 +34,7 @@ class MenuResource extends JsonResource
             'schedule_status' => $this->schedule_status,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
+            'deleted_at' => $this->deleted_at?->toIso8601String(),
         ];
     }
 }

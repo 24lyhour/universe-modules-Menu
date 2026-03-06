@@ -5,11 +5,12 @@ namespace Modules\Menu\Models;
 use App\Traits\BelongsToOutlet;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Menu\Database\Factories\MenuFactory;
 
 class Menu extends Model
 {
-    use HasFactory, BelongsToOutlet;
+    use HasFactory, BelongsToOutlet, SoftDeletes;
 
     /**
      * Get the route key for the model.

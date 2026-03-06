@@ -5,11 +5,12 @@ namespace Modules\Menu\Models;
 use App\Traits\BelongsToOutlet;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use \Modules\Outlet\Models\Outlet;
 
 class MenuType extends Model
 {
-    use HasFactory, BelongsToOutlet;
+    use HasFactory, BelongsToOutlet, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.

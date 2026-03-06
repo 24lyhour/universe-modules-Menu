@@ -22,12 +22,14 @@ export interface Menu {
     schedule_status: boolean | null;
     created_at: string;
     updated_at: string;
+    deleted_at: string | null;
 }
 
 export interface MenuStats {
     total: number;
     active: number;
     inactive: number;
+    trashed: number;
 }
 
 export interface PaginationMeta {
@@ -112,12 +114,14 @@ export interface Category {
     products_count?: number;
     created_at: string;
     updated_at: string;
+    deleted_at: string | null;
 }
 
 export interface CategoryStats {
     total: number;
     active: number;
     inactive: number;
+    trashed: number;
 }
 
 export interface CategoryFilters {
@@ -191,14 +195,17 @@ export interface MenuType {
     outlet_name: string | null;
     sort_order: number;
     status: boolean;
+    menus_count?: number;
     created_at: string;
     updated_at: string;
+    deleted_at: string | null;
 }
 
 export interface MenuTypeStats {
     total: number;
     active: number;
     inactive: number;
+    trashed: number;
 }
 
 export interface MenuTypeFilters {

@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Menu\Http\Controllers\Api\V1\CategoryPublicController;
+use Modules\Menu\Http\Controllers\Api\V1\Category\CategoryPublicController;
 
 /*
 |--------------------------------------------------------------------------

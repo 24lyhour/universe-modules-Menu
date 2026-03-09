@@ -14,7 +14,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Plus, ListOrdered, CheckCircle, XCircle, Search, Eye, Pencil, Trash2, Download, Upload, Database, X } from 'lucide-vue-next';
+import { Plus, ListOrdered, CheckCircle, XCircle, Search, Eye, Pencil, Trash2, Download, Upload, FileSpreadsheet, Database, X } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 import type { MenuTypeIndexProps, MenuType } from '@menu/types';
 
@@ -28,6 +28,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const search = ref(props.filters.search || '');
 const statusFilter = ref(props.filters.status || 'all');
+const selectedUuids = ref<(string | number)[]>([]);
 
 // Check if any filters are active
 const hasActiveFilters = computed(() => {
@@ -129,6 +130,14 @@ const handleExport = () => {
     window.location.href = `/dashboard/menu-types/export?${params.toString()}`;
 };
 
+const handleImport = () => {
+    router.visit('/dashboard/menu-types/import');
+};
+
+const handleDownloadTemplate = () => {
+    window.location.href = '/dashboard/menu-types/import/template';
+};
+
 const handleClearFilters = () => {
     search.value = '';
     statusFilter.value = 'all';
@@ -142,6 +151,14 @@ const handleStatusToggle = (menuType: MenuType, newStatus: boolean) => {
         preserveState: true,
         preserveScroll: true,
     });
+};
+
+const openBulkDeleteDialog = () => {
+    const params = new URLSearchParams();
+    selectedUuids.value.forEach((uuid) => {
+        params.append('uuids[]', String(uuid));
+    });
+    router.visit(`/dashboard/menu-types/bulk-delete?${params.toString()}`);
 };
 </script>
 
@@ -169,16 +186,20 @@ const handleStatusToggle = (menuType: MenuType, newStatus: boolean) => {
                             </Link>
                         </Button>
                     </ButtonGroup>
-                    <Button variant="outline" @click="handleExport">
-                        <Download class="mr-2 h-4 w-4" />
-                        Export
-                    </Button>
-                    <Button variant="outline" as-child>
-                        <Link href="/dashboard/menu-types/import">
+                    <ButtonGroup>
+                        <Button variant="outline" @click="handleExport">
+                            <Download class="mr-2 h-4 w-4" />
+                            Export
+                        </Button>
+                        <Button variant="outline" @click="handleImport">
                             <Upload class="mr-2 h-4 w-4" />
                             Import
-                        </Link>
-                    </Button>
+                        </Button>
+                        <Button variant="outline" @click="handleDownloadTemplate">
+                            <FileSpreadsheet class="mr-2 h-4 w-4" />
+                            Template
+                        </Button>
+                    </ButtonGroup>
                     <Button @click="handleCreate">
                         <Plus class="mr-2 h-4 w-4" />
                         Add Menu Type
@@ -256,9 +277,23 @@ const handleStatusToggle = (menuType: MenuType, newStatus: boolean) => {
                     :actions="actions"
                     :pagination="pagination"
                     :searchable="false"
+                    :selectable="true"
+                    select-key="uuid"
+                    v-model:selected="selectedUuids"
                     @page-change="handlePageChange"
                     @per-page-change="handlePerPageChange"
                 >
+                    <template #bulk-actions>
+                        <Button
+                            v-if="selectedUuids.length > 0"
+                            variant="destructive"
+                            size="sm"
+                            @click="openBulkDeleteDialog"
+                        >
+                            <Trash2 class="mr-2 h-4 w-4" />
+                            Delete {{ selectedUuids.length }} Selected
+                        </Button>
+                    </template>
                     <template #cell-status="{ item }">
                         <div class="flex items-center gap-2" @click.stop>
                             <Switch

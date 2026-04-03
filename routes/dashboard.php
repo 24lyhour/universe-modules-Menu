@@ -58,6 +58,7 @@ Route::middleware(['auth', 'verified', 'auto.permission'])->prefix('dashboard')-
     Route::get('categories/{category}/products/manage', [CategoryProductController::class, 'manageProducts'])->name('categories.products.manage');
     Route::post('categories/{category}/products/sync', [CategoryProductController::class, 'syncProducts'])->name('categories.products.sync');
     Route::post('categories/{category}/products/reorder', [CategoryProductController::class, 'reorderProducts'])->name('categories.products.reorder');
+    Route::put('categories/{category}/products/{product}/toggle-availability', [CategoryProductController::class, 'toggleAvailability'])->name('categories.products.toggle-availability');
     Route::put('categories/{uuid}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
     Route::delete('categories/{uuid}/force-delete', [CategoryController::class, 'forceDelete'])->name('categories.force-delete');
 

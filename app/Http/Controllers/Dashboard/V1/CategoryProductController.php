@@ -68,6 +68,22 @@ class CategoryProductController extends Controller
     }
 
     /**
+     * Toggle product availability in a category.
+     */
+    public function toggleAvailability(Request $request, Category $category, Product $product): RedirectResponse
+    {
+        $request->validate([
+            'is_available' => ['required', 'boolean'],
+        ]);
+
+        $category->products()->updateExistingPivot($product->id, [
+            'is_available' => $request->boolean('is_available'),
+        ]);
+
+        return redirect()->back()->with('success', 'Product availability updated.');
+    }
+
+    /**
      * Reorder products for a category.
      */
     public function reorderProducts(Request $request, Category $category): RedirectResponse

@@ -11,58 +11,96 @@ use Modules\Product\Models\Product;
 class MenuCategoryProductSeeder extends Seeder
 {
     /**
-     * Map product types to category product types.
+     * Menu type to product type allocation.
+     *
+     * Each menu type gets a specific subset of products.
+     * 'take' = how many, 'offset' = starting position.
+     * For duplicate menu types in same outlet, second menu gets 'alt_offset'.
      */
-    private array $productTypeMapping = [
-        'food' => 'food',
-        'beverage' => 'beverage',
-        'dessert' => 'dessert',
+    private array $menuTypeStrategy = [
+        'Breakfast' => [
+            'food' => ['take' => 4, 'offset' => 0, 'alt_offset' => 4],
+            'beverage' => ['take' => 3, 'offset' => 0, 'alt_offset' => 3],
+            'dessert' => ['take' => 1, 'offset' => 0, 'alt_offset' => 1],
+        ],
+        'Lunch' => [
+            'food' => ['take' => 5, 'offset' => 3],
+            'beverage' => ['take' => 3, 'offset' => 1],
+            'dessert' => ['take' => 2, 'offset' => 1],
+        ],
+        'Dinner' => [
+            'food' => ['take' => 6, 'offset' => 5],
+            'beverage' => ['take' => 4, 'offset' => 2],
+            'dessert' => ['take' => 3, 'offset' => 1],
+        ],
+        'Beverages' => [
+            'beverage' => ['take' => 6, 'offset' => 0],
+        ],
+        'Desserts' => [
+            'dessert' => ['take' => 4, 'offset' => 0],
+        ],
     ];
 
     /**
      * Run the database seeds.
-     *
-     * Links products to menu categories based on:
-     * 1. Same outlet (product.outlet_id matches menu.outlet_id)
-     * 2. Matching product type (product.product_type matches category.product_type)
      */
     public function run(): void
     {
-        // Get all menus with their categories, grouped by outlet
-        $menus = Menu::with(['categories'])->get()->groupBy('outlet_id');
+        $menus = Menu::with(['menuType', 'categories'])->orderBy('outlet_id')->orderBy('id')->get();
 
         if ($menus->isEmpty()) {
             $this->command->warn('No menus found. Please run MenuSeeder first.');
             return;
         }
 
-        // Get all products grouped by outlet and product_type
-        $products = Product::where('status', 'active')->get();
+        // Group products by outlet:product_type, sorted by id
+        $productMap = Product::where('status', 'active')
+            ->orderBy('id')
+            ->get()
+            ->groupBy(fn ($p) => $p->outlet_id . ':' . $p->product_type);
 
-        if ($products->isEmpty()) {
-            $this->command->warn('No products found. Please run ProductSeeder first.');
-            return;
-        }
-
+        // Track how many times a menu type appears per outlet (for alt_offset)
+        $menuTypeCount = [];
         $linkedCount = 0;
-        $sortOrder = 1;
 
-        foreach ($products as $product) {
-            $outletId = $product->outlet_id;
-            $productType = $product->product_type; // food, beverage, dessert, etc.
+        foreach ($menus as $menu) {
+            $outletId = $menu->outlet_id;
+            $menuTypeName = $menu->menuType?->name ?? 'default';
 
-            // Get menus for this outlet
-            $outletMenus = $menus->get($outletId, collect());
+            // Track occurrence index of this menu type within this outlet
+            $typeKey = $outletId . ':' . $menuTypeName;
+            $menuTypeCount[$typeKey] = ($menuTypeCount[$typeKey] ?? 0) + 1;
+            $occurrence = $menuTypeCount[$typeKey]; // 1 = first, 2 = second
 
-            foreach ($outletMenus as $menu) {
-                // Find categories that match the product type
-                $matchingCategories = $menu->categories->filter(function ($category) use ($productType) {
-                    return $category->product_type === $productType;
-                });
+            $typeStrategies = $this->menuTypeStrategy[$menuTypeName] ?? null;
+            if (!$typeStrategies) {
+                continue;
+            }
 
-                // Link product to matching categories (usually just one per menu)
-                foreach ($matchingCategories->take(1) as $category) {
-                    // Check if relationship already exists
+            foreach ($menu->categories as $category) {
+                $productType = $category->product_type;
+                $key = $outletId . ':' . $productType;
+
+                $allProducts = $productMap->get($key, collect());
+                if ($allProducts->isEmpty()) {
+                    continue;
+                }
+
+                $strategy = $typeStrategies[$productType] ?? null;
+                if (!$strategy) {
+                    continue;
+                }
+
+                // Use alt_offset for second occurrence of same menu type
+                $offset = $strategy['offset'];
+                if ($occurrence > 1 && isset($strategy['alt_offset'])) {
+                    $offset = $strategy['alt_offset'];
+                }
+
+                $products = $allProducts->slice($offset, $strategy['take']);
+
+                $sortOrder = 1;
+                foreach ($products as $product) {
                     $exists = DB::table('menu_category_products')
                         ->where('category_id', $category->id)
                         ->where('product_id', $product->id)
@@ -72,8 +110,8 @@ class MenuCategoryProductSeeder extends Seeder
                         DB::table('menu_category_products')->insert([
                             'category_id' => $category->id,
                             'product_id' => $product->id,
-                            'price_override' => null, // Use product's default price
-                            'sort_order' => $sortOrder++,
+                            'price_override' => null,
+                            'sort_order' => $sortOrder,
                             'is_available' => true,
                             'created_at' => now(),
                             'updated_at' => now(),
@@ -81,10 +119,12 @@ class MenuCategoryProductSeeder extends Seeder
 
                         $linkedCount++;
                     }
+
+                    $sortOrder++;
                 }
             }
         }
 
-        $this->command->info("Menu-Category-Product relationships seeded. Linked {$linkedCount} products to categories.");
+        $this->command->info("Menu-Category-Product linked: {$linkedCount} relationships created.");
     }
 }

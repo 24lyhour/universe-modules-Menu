@@ -12,6 +12,7 @@ use RecursiveIteratorIterator;
 class MenuServiceProvider extends ServiceProvider
 {
     use PathNamespace;
+    // use HasSwitchDatabase;
 
     protected string $name = 'Menu';
 
@@ -69,7 +70,9 @@ class MenuServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        $this->commands([
+            \Modules\Menu\Console\Commands\MenuScheduleCheckCommand::class,
+        ]);
     }
 
     /**
@@ -77,10 +80,13 @@ class MenuServiceProvider extends ServiceProvider
      */
     protected function registerCommandSchedules(): void
     {
-        // $this->app->booted(function () {
-        //     $schedule = $this->app->make(Schedule::class);
-        //     $schedule->command('inspire')->hourly();
-        // });
+        $this->app->booted(function () {
+            $schedule = $this->app->make(\Illuminate\Console\Scheduling\Schedule::class);
+            $schedule->command('menu:schedule-check')
+                ->hourly()
+                ->name('menu-schedule-check')
+                ->withoutOverlapping();
+        });
     }
 
     /**

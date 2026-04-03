@@ -89,8 +89,8 @@ const props = defineProps<ManageCategoriesProps>();
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Menus', href: '/dashboard/menus' },
-    { title: props.menu.name, href: `/dashboard/menus/${props.menu.id}` },
-    { title: 'Manage Categories', href: `/dashboard/menus/${props.menu.id}/categories/manage` },
+    { title: props.menu.name, href: `/dashboard/menus/${props.menu.uuid}` },
+    { title: 'Manage Categories', href: `/dashboard/menus/${props.menu.uuid}/categories/manage` },
 ];
 
 const search = ref(props.filters.search || '');
@@ -104,10 +104,10 @@ const expandedCategories = ref<Record<number, boolean>>({});
 // Local copy of categories for drag-drop
 const localCategories = ref<CategoryWithProducts[]>([...props.categories]);
 
-// Watch for prop changes
+// Watch for prop changes (deep: true to catch nested pivot updates)
 watch(() => props.categories, (newData) => {
-    localCategories.value = [...newData];
-});
+    localCategories.value = JSON.parse(JSON.stringify(newData));
+}, { deep: true });
 
 const isExpanded = (categoryId: number): boolean => {
     return expandedCategories.value[categoryId] ?? false;
@@ -156,14 +156,14 @@ const cancelProductReorder = (category: CategoryWithProducts) => {
 };
 
 const handleSearch = () => {
-    router.get(`/dashboard/menus/${props.menu.id}/categories/manage`, {
+    router.get(`/dashboard/menus/${props.menu.uuid}/categories/manage`, {
         search: search.value || undefined,
         status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
     }, { preserveState: true });
 };
 
 watch(statusFilter, () => {
-    router.get(`/dashboard/menus/${props.menu.id}/categories/manage`, {
+    router.get(`/dashboard/menus/${props.menu.uuid}/categories/manage`, {
         search: search.value || undefined,
         status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
     }, { preserveState: true });
@@ -174,7 +174,7 @@ const handleCreate = () => {
 };
 
 const handleAssignExisting = () => {
-    router.visit(`/dashboard/menus/${props.menu.id}/categories/assign`);
+    router.visit(`/dashboard/menus/${props.menu.uuid}/categories/assign`);
 };
 
 const handleStatusToggle = (category: CategoryWithProducts, newStatus: boolean) => {
@@ -197,7 +197,7 @@ const saveOrder = () => {
         sort_order: index + 1,
     }));
 
-    router.post(`/dashboard/menus/${props.menu.id}/categories/reorder`, {
+    router.post(`/dashboard/menus/${props.menu.uuid}/categories/reorder`, {
         categories: reorderedCategories,
     }, {
         preserveScroll: true,
@@ -223,6 +223,15 @@ const formatCurrency = (value: number) => {
     }).format(value);
 };
 
+const handleProductAvailabilityToggle = (category: CategoryWithProducts, product: CategoryProduct, newValue: boolean) => {
+    router.put(`/dashboard/categories/${category.id}/products/${product.id}/toggle-availability`, {
+        is_available: newValue,
+    }, {
+        preserveState: true,
+        preserveScroll: true,
+    });
+};
+
 const getStatusVariant = (status: string) => {
     switch (status) {
         case 'active':
@@ -244,7 +253,7 @@ const getStatusVariant = (status: string) => {
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
                     <Button variant="outline" size="icon" as-child>
-                        <Link :href="`/dashboard/menus/${menu.id}`">
+                        <Link :href="`/dashboard/menus`">
                             <ArrowLeft class="h-4 w-4" />
                         </Link>
                     </Button>
@@ -552,17 +561,21 @@ const getStatusVariant = (status: string) => {
                                             </div>
 
                                             <!-- Override Price -->
-                                            <div class="text-right text-sm">
-                                                <span v-if="product.pivot.price_override" class="font-medium text-blue-600">
+                                            <div v-if="product.pivot.price_override" class="text-right text-sm">
+                                                <span class="font-medium text-blue-600">
                                                     {{ formatCurrency(product.pivot.price_override) }}
                                                 </span>
-                                                <span v-else class="text-muted-foreground">-</span>
                                             </div>
 
-                                            <!-- Available Status -->
-                                            <div class="flex items-center gap-1">
-                                                <CheckCircle v-if="product.pivot.is_available" class="h-4 w-4 text-green-600" />
-                                                <XCircle v-else class="h-4 w-4 text-red-500" />
+                                            <!-- Available Toggle -->
+                                            <div class="flex items-center gap-2" @click.stop>
+                                                <Switch
+                                                    :model-value="product.pivot.is_available"
+                                                    @update:model-value="handleProductAvailabilityToggle(category, product, $event)"
+                                                />
+                                                <span class="text-sm text-muted-foreground w-16">
+                                                    {{ product.pivot.is_available ? 'Active' : 'Inactive' }}
+                                                </span>
                                             </div>
                                         </div>
                                     </VueDraggable>

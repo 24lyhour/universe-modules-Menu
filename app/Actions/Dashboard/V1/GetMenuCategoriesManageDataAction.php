@@ -51,8 +51,8 @@ class GetMenuCategoriesManageDataAction
                     'image_url' => $product->images[0] ?? null,
                     'pivot' => [
                         'price_override' => $product->pivot->price_override,
-                        'sort_order' => $product->pivot->sort_order,
-                        'is_available' => $product->pivot->is_available,
+                        'sort_order' => (int) $product->pivot->sort_order,
+                        'is_available' => (bool) $product->pivot->is_available,
                     ],
                 ]),
             ];

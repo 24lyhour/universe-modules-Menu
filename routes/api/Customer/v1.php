@@ -2,14 +2,21 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Menu\Http\Controllers\Api\V1\Customer\Category\CategoryPublicController;
+use Modules\Menu\Http\Controllers\Api\V1\Customer\Menu\MenuController;
 
 /*
 |--------------------------------------------------------------------------
 | Public Routes (no authentication required)
 |--------------------------------------------------------------------------
-| These routes are for mobile app to browse categories
+| These routes are for mobile app to browse menus and categories
 */
 Route::prefix('v1')->group(function () {
+    // Menu with nested restaurant → categories → products
+    Route::get('menus', [MenuController::class, 'index'])
+        ->name('menu.public.index');
+    Route::get('menus/{menu}', [MenuController::class, 'show'])
+        ->name('menu.public.show');
+
     // Public category listing
     Route::get('categories', [CategoryPublicController::class, 'index'])
         ->name('category.public.index');

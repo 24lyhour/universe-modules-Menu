@@ -192,4 +192,5 @@ class MenuService
         $this->clearStatsCache();
         return $count;
     }
+
 }

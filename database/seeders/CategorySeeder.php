@@ -6,64 +6,100 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 use Modules\Menu\Models\Category;
 use Modules\Menu\Models\Menu;
-use Modules\Product\Models\ProductType;
+use Modules\Product\Models\Product;
 
 class CategorySeeder extends Seeder
 {
     /**
+     * Category definitions per product type.
+     */
+    private array $categoryMap = [
+        'food' => [
+            'name' => 'Food',
+            'description' => 'Main dishes, snacks, and appetizers',
+        ],
+        'beverage' => [
+            'name' => 'Beverages',
+            'description' => 'Drinks, juices, and refreshments',
+        ],
+        'dessert' => [
+            'name' => 'Desserts',
+            'description' => 'Sweet treats, cakes, and pastries',
+        ],
+        'gadget' => [
+            'name' => 'Gadgets',
+            'description' => 'Tech gadgets and accessories',
+        ],
+        'clothing' => [
+            'name' => 'Clothing',
+            'description' => 'Apparel and fashion items',
+        ],
+        'book' => [
+            'name' => 'Books',
+            'description' => 'Books and literature',
+        ],
+    ];
+
+    /**
      * Run the database seeds.
      *
-     * Creates categories dynamically based on:
-     * 1. Menus from database
-     * 2. ProductTypes from database (per outlet)
+     * Creates categories for each menu based on the product types
+     * available in that menu's outlet.
      */
     public function run(): void
     {
-        // Get all menus with their outlet
-        $menus = Menu::with(['outlet', 'menuType'])->get();
+        $menus = Menu::all();
 
         if ($menus->isEmpty()) {
             $this->command->warn('No menus found. Please run MenuSeeder first.');
             return;
         }
 
+        // Get distinct product types per outlet
+        $outletProductTypes = Product::where('status', 'active')
+            ->selectRaw('outlet_id, product_type')
+            ->distinct()
+            ->get()
+            ->groupBy('outlet_id')
+            ->map(fn ($items) => $items->pluck('product_type')->toArray());
+
+        if ($outletProductTypes->isEmpty()) {
+            $this->command->warn('No active products found. Please run ProductSeeder first.');
+            return;
+        }
+
         $createdCount = 0;
 
         foreach ($menus as $menu) {
-            // Get ProductTypes for this menu's outlet from database
-            $productTypes = ProductType::where('outlet_id', $menu->outlet_id)
-                ->where('is_active', true)
-                ->orderBy('sort_order')
-                ->get();
-
-            if ($productTypes->isEmpty()) {
-                continue;
-            }
+            $productTypes = $outletProductTypes->get($menu->outlet_id, []);
 
             $sortOrder = 1;
+            foreach ($productTypes as $type) {
+                $label = $this->categoryMap[$type] ?? [
+                    'name' => ucfirst($type),
+                    'description' => ucfirst($type) . ' items',
+                ];
 
-            foreach ($productTypes as $productType) {
-                // Create category for each ProductType
-                Category::firstOrCreate(
+                $created = Category::firstOrCreate(
                     [
                         'menu_id' => $menu->id,
-                        'product_type' => $productType->slug,
+                        'product_type' => $type,
                     ],
                     [
-                        'uuid' => Str::uuid(),
-                        'menu_id' => $menu->id,
-                        'name' => $productType->name,
-                        'description' => $productType->description,
-                        'product_type' => $productType->slug,
+                        'uuid' => (string) Str::uuid(),
+                        'name' => $label['name'],
+                        'description' => $label['description'],
                         'sort_order' => $sortOrder++,
                         'status' => true,
                     ]
                 );
 
-                $createdCount++;
+                if ($created->wasRecentlyCreated) {
+                    $createdCount++;
+                }
             }
         }
 
-        $this->command->info("Categories seeded successfully. Created {$createdCount} categories from ProductTypes.");
+        $this->command->info("Categories seeded: {$createdCount} created.");
     }
 }

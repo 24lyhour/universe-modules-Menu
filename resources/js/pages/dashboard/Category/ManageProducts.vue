@@ -36,7 +36,7 @@ interface Props {
     allProducts: Product[];
     assignedProducts: AssignedProduct[];
     returnTo?: string;
-    menuId?: number;
+    menuId?: string;
 }
 
 const props = defineProps<Props>();
@@ -175,7 +175,6 @@ const handleSubmit = () => {
     form.post(`/dashboard/categories/${props.category.id}/products/sync${queryString}`, {
         onSuccess: () => {
             close();
-            redirect();
         },
     });
 };

@@ -39,7 +39,7 @@ class CategoryProductController extends Controller
 
         // Pass return info to the modal
         $data['returnTo'] = $returnTo;
-        $data['menuId'] = $menuId ? (int) $menuId : null;
+        $data['menuId'] = $menuId ?: null;
 
         return Inertia::modal('menu::dashboard/Category/ManageProducts', $data)
             ->baseRoute($baseRoute, $baseRouteParams);

@@ -170,7 +170,7 @@ watch(statusFilter, () => {
 });
 
 const handleCreate = () => {
-    router.visit(`/dashboard/categories/create?menu_id=${props.menu.id}`);
+    router.visit(`/dashboard/categories/create?menu_id=${props.menu.uuid}`);
 };
 
 const handleAssignExisting = () => {
@@ -436,7 +436,7 @@ const getStatusVariant = (status: string) => {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem @click="router.visit(`/dashboard/categories/${category.id}/products/manage?return_to=menu&menu_id=${menu.id}`)">
+                                        <DropdownMenuItem @click="router.visit(`/dashboard/categories/${category.id}/products/manage?return_to=menu&menu_id=${menu.uuid}`)">
                                             <Package class="mr-2 h-4 w-4" />
                                             Manage Products
                                         </DropdownMenuItem>
@@ -490,7 +490,7 @@ const getStatusVariant = (status: string) => {
                                             v-else
                                             variant="outline"
                                             size="sm"
-                                            @click="router.visit(`/dashboard/categories/${category.id}/products/manage?return_to=menu&menu_id=${menu.id}`)"
+                                            @click="router.visit(`/dashboard/categories/${category.id}/products/manage?return_to=menu&menu_id=${menu.uuid}`)"
                                         >
                                             <Plus class="mr-1 h-3 w-3" />
                                             Manage
@@ -502,7 +502,7 @@ const getStatusVariant = (status: string) => {
                                         <Button
                                             variant="link"
                                             class="px-1"
-                                            @click="router.visit(`/dashboard/categories/${category.id}/products/manage?return_to=menu&menu_id=${menu.id}`)"
+                                            @click="router.visit(`/dashboard/categories/${category.id}/products/manage?return_to=menu&menu_id=${menu.uuid}`)"
                                         >
                                             Add products
                                         </Button>

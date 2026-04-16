@@ -17,6 +17,10 @@ Route::prefix('v1')->group(function () {
     Route::get('menus/{menu}', [MenuController::class, 'show'])
         ->name('menu.public.show');
 
+    // Menu types (Breakfast, Lunch, Dinner, etc.)
+    Route::get('menu-types', [MenuController::class, 'menuTypes'])
+        ->name('menu.public.types');
+
     // Public category listing
     Route::get('categories', [CategoryPublicController::class, 'index'])
         ->name('category.public.index');

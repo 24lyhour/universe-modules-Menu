@@ -9,6 +9,7 @@ use Modules\Menu\Actions\Api\V1\GetMenuDetailAction;
 use Modules\Menu\Actions\Api\V1\GetMenusAction;
 use Modules\Menu\Http\Resources\Api\V1\MenuResource;
 use Modules\Menu\Models\Menu;
+use Modules\Menu\Models\MenuType;
 
 class MenuController extends Controller
 {
@@ -27,6 +28,22 @@ class MenuController extends Controller
         return response()->json([
             'success' => true,
             'data' => MenuResource::collection($menus),
+        ]);
+    }
+
+    /**
+     * List all active menu types.
+     *
+     * GET /api/v1/menu-types
+     */
+    public function menuTypes(): JsonResponse
+    {
+        $types = MenuType::where('status', true)
+            ->orderBy('sort_order')
+            ->get(['id', 'uuid', 'name', 'description', 'image_url', 'sort_order']);
+
+        return response()->json([
+            'data' => $types,
         ]);
     }
 

@@ -15,7 +15,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, UtensilsCrossed, CheckCircle, XCircle, Search, Eye, Pencil, Trash2, Layers, FolderTree, Package, ExternalLink, Clock, CalendarClock, Download, Upload, FileSpreadsheet, Database, X } from 'lucide-vue-next';
+import { Plus, UtensilsCrossed, CheckCircle, XCircle, Search, Eye, Pencil, Trash2, Layers, FolderTree, Package, ExternalLink, Clock, CalendarClock, Download, Upload, FileSpreadsheet, Database, X, Megaphone, BellOff } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 import type { MenuIndexProps, Menu } from '@menu/types';
 import { toast } from '@/composables/useToast';
@@ -104,6 +104,11 @@ const actions: TableAction<Menu>[] = [
         onClick: (menu) => router.visit(`/dashboard/menus/${menu.uuid}/schedule`),
     },
     {
+        label: 'Mute / Unmute',
+        icon: Megaphone,
+        onClick: (menu) => router.visit(`/dashboard/menus/${menu.uuid}/mute`),
+    },
+    {
         label: 'Delete',
         icon: Trash2,
         onClick: (menu) => router.visit(`/dashboard/menus/${menu.uuid}/delete`),
@@ -111,6 +116,12 @@ const actions: TableAction<Menu>[] = [
         separator: true,
     },
 ];
+
+const isCurrentlyMuted = (menu: Menu): boolean => {
+    if (!menu.is_muted) return false;
+    if (!menu.muted_until) return true;
+    return new Date(menu.muted_until).getTime() > Date.now();
+};
 
 const pagination = computed<PaginationData>(() => ({
     current_page: props.menuItems.meta.current_page,
@@ -379,6 +390,20 @@ const openBulkDeleteDialog = () => {
                             <span class="text-sm text-muted-foreground">
                                 {{ item.status ? 'Active' : 'Inactive' }}
                             </span>
+                            <Badge
+                                v-if="isCurrentlyMuted(item)"
+                                variant="secondary"
+                                class="gap-1 cursor-pointer bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-950/50 dark:text-amber-300"
+                                @click.stop="router.visit(`/dashboard/menus/${item.uuid}/mute`)"
+                            >
+                                <BellOff class="h-3 w-3" />
+                                Muted
+                            </Badge>
+                            <Megaphone
+                                v-else-if="item.status"
+                                class="h-3.5 w-3.5 cursor-pointer text-muted-foreground/40 hover:text-muted-foreground"
+                                @click.stop="router.visit(`/dashboard/menus/${item.uuid}/mute`)"
+                            />
                         </div>
                     </template>
                 </TableReusable>

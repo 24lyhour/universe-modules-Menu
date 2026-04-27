@@ -6,6 +6,7 @@ use Modules\Menu\Http\Controllers\Dashboard\V1\CategoryProductController;
 use Modules\Menu\Http\Controllers\Dashboard\V1\CategoryStatusController;
 use Modules\Menu\Http\Controllers\Dashboard\V1\MenuCategoryController;
 use Modules\Menu\Http\Controllers\Dashboard\V1\MenuController;
+use Modules\Menu\Http\Controllers\Dashboard\V1\MenuMuteController;
 use Modules\Menu\Http\Controllers\Dashboard\V1\MenuScheduleController;
 use Modules\Menu\Http\Controllers\Dashboard\V1\MenuStatusController;
 use Modules\Menu\Http\Controllers\Dashboard\V1\MenuTypeController;
@@ -31,6 +32,9 @@ Route::middleware(['auth', 'verified', 'auto.permission'])->prefix('dashboard')-
     Route::put('menus/{menu}/toggle-status', MenuStatusController::class)->name('menus.toggle-status');
     Route::get('menus/{menu}/schedule', [MenuScheduleController::class, 'show'])->name('menus.schedule');
     Route::put('menus/{menu}/schedule', [MenuScheduleController::class, 'update'])->name('menus.update-schedule');
+    Route::get('menus/{menu}/mute', [MenuMuteController::class, 'show'])->name('menus.mute');
+    Route::post('menus/{menu}/mute', [MenuMuteController::class, 'mute'])->name('menus.mute.apply');
+    Route::delete('menus/{menu}/mute', [MenuMuteController::class, 'unmute'])->name('menus.unmute');
     Route::get('menus/{menu}/categories/manage', [MenuCategoryController::class, 'manageCategories'])->name('menus.categories.manage');
     Route::post('menus/{menu}/categories/reorder', [MenuCategoryController::class, 'reorderCategories'])->name('menus.categories.reorder');
     Route::get('menus/{menu}/categories/assign', [MenuCategoryController::class, 'assignCategories'])->name('menus.categories.assign');

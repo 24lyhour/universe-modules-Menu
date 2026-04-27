@@ -20,9 +20,20 @@ export interface Menu {
     schedule_start_date: string | null;
     schedule_end_date: string | null;
     schedule_status: boolean | null;
+    is_muted: boolean;
+    muted_at: string | null;
+    muted_until: string | null;
+    muted_reason: string | null;
+    muted_by: number | null;
+    muted_by_name?: string | null;
     created_at: string;
     updated_at: string;
     deleted_at: string | null;
+}
+
+export interface MutePreset {
+    key: string;
+    label: string;
 }
 
 export interface MenuStats {

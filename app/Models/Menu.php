@@ -3,26 +3,21 @@
 namespace Modules\Menu\Models;
 
 use App\Traits\BelongsToOutlet;
-use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasMutable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Menu\Database\Factories\MenuFactory;
 
 class Menu extends Model
 {
-    use HasFactory, BelongsToOutlet, SoftDeletes;
+    use HasFactory, BelongsToOutlet, SoftDeletes, HasMutable;
 
-    /**
-     * Get the route key for the model.
-     */
     public function getRouteKeyName(): string
     {
         return 'uuid';
     }
 
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
         'uuid',
         'tenant_type',
@@ -44,18 +39,18 @@ class Menu extends Model
         'schedule_start_date',
         'schedule_end_date',
         'schedule_status',
+        'is_muted',
+        'muted_at',
+        'muted_until',
+        'muted_reason',
+        'muted_by',
         'created_by',
         'updated_by',
     ];
 
-    /**
-     * cast
-     */
     protected $casts = [
-       
-        'status' => 'boolean'   ,
+        'status' => 'boolean',
         'schedule_status' => 'boolean',
-       
     ];
 
     protected static function newFactory(): MenuFactory
@@ -63,41 +58,26 @@ class Menu extends Model
         return MenuFactory::new();
     }
 
-    /**
-     * Belongs to outlet
-     */
     public function outlet()
     {
         return $this->belongsTo(\Modules\Outlet\Models\Outlet::class);
     }
 
-    /**
-     * Belongs to menu type
-     */
     public function menuType()
     {
         return $this->belongsTo(MenuType::class);
     }
 
-    /**
-     * Belongs to product
-     */
     public function product()
     {
         return $this->belongsTo(Product::class);
     }
 
-    /**
-     * Has many categories
-     */
     public function categories()
     {
         return $this->hasMany(Category::class);
     }
 
-    /**
-     * Belongs to company
-     */
     public function company()
     {
         return $this->belongsTo(Company::class);

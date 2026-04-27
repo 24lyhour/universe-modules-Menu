@@ -13,9 +13,10 @@ class GetMenusAction
      */
     public function execute(?int $outletId = null): Collection
     {
-        // available() = status=true AND not currently muted (auto-expiry aware).
-        // Muted menus disappear from the customer app entirely — no banner, no
-        // greyed-out state — until staff unmute or muted_until passes.
+        // Return all enabled menus, INCLUDING currently-muted ones.
+        // The MenuResource exposes `is_available` / `is_muted` / `muted_reason`
+        // so the customer app can render an "unavailable" banner and disable
+        // ordering instead of hiding the menu entirely.
         $query = Menu::with([
                 'outlet',
                 'menuType',
@@ -28,7 +29,7 @@ class GetMenusAction
                       ->wherePivot('is_available', true);
                 },
             ])
-            ->available();
+            ->where('status', true);
 
         if ($outletId) {
             $query->where('outlet_id', $outletId);

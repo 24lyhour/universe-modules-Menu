@@ -54,12 +54,12 @@ class MenuController extends Controller
      */
     public function show(Menu $menu, GetMenuDetailAction $action): JsonResponse
     {
-        // Hide menus that aren't currently available to customers:
+        // Hide only menus the customer truly shouldn't see:
         //   - disabled (status=false)
-        //   - muted (live during service)
         //   - outside their configured schedule window
-        // 404 — from the customer's POV the resource isn't there right now.
-        if (!$menu->status || $menu->isCurrentlyMuted() || !$menu->isWithinSchedule()) {
+        // Muted menus DO load — the resource exposes `is_available` / `muted_reason`
+        // so the app shows the "Currently unavailable" banner.
+        if (!$menu->status || !$menu->isWithinSchedule()) {
             abort(404);
         }
 

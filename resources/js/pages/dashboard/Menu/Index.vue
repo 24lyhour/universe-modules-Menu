@@ -76,6 +76,10 @@ const columns: TableColumn<Menu>[] = [
         label: 'Schedule',
     },
     {
+        key: 'is_mute',
+        label: 'Mute'
+    },
+    {
         key: 'status',
         label: 'Status',
         render: (menu) => menu.status ? 'Active' : 'Inactive',
@@ -121,6 +125,27 @@ const isCurrentlyMuted = (menu: Menu): boolean => {
     if (!menu.is_muted) return false;
     if (!menu.muted_until) return true;
     return new Date(menu.muted_until).getTime() > Date.now();
+};
+
+const muteTitle = (menu: Menu): string => {
+    if (!isCurrentlyMuted(menu)) return '';
+
+    const lines: string[] = ['Currently muted'];
+    if (menu.muted_reason) {
+        // Strip basic HTML if the reason came from a rich-text editor.
+        const plain = String(menu.muted_reason).replace(/<[^>]*>/g, '').trim();
+        if (plain) lines.push(`Reason: ${plain}`);
+    }
+    if (menu.muted_until) {
+        lines.push(`Auto-unmutes: ${new Date(menu.muted_until).toLocaleString()}`);
+    } else {
+        lines.push('Until manually unmuted');
+    }
+    if (menu.muted_by_name) {
+        const at = menu.muted_at ? ` at ${new Date(menu.muted_at).toLocaleString()}` : '';
+        lines.push(`Muted by ${menu.muted_by_name}${at}`);
+    }
+    return lines.join('\n');
 };
 
 const pagination = computed<PaginationData>(() => ({
@@ -381,6 +406,25 @@ const openBulkDeleteDialog = () => {
                             Not Set
                         </Badge>
                     </template>
+                    <template #cell-is_mute="{ item }">
+                        <Badge
+                            v-if="isCurrentlyMuted(item)"
+                            variant="secondary"
+                            class="gap-1 bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300"
+                            :title="muteTitle(item)"
+                        >
+                            <BellOff class="h-3 w-3" />
+                            Muted
+                        </Badge>
+                        <Badge
+                            v-else
+                            variant="outline"
+                            class="gap-1 text-muted-foreground"
+                        >
+                            <Megaphone class="h-3 w-3" />
+                            Live
+                        </Badge>
+                    </template>
                     <template #cell-status="{ item }">
                         <div class="flex items-center gap-2" @click.stop>
                             <Switch
@@ -390,20 +434,6 @@ const openBulkDeleteDialog = () => {
                             <span class="text-sm text-muted-foreground">
                                 {{ item.status ? 'Active' : 'Inactive' }}
                             </span>
-                            <Badge
-                                v-if="isCurrentlyMuted(item)"
-                                variant="secondary"
-                                class="gap-1 cursor-pointer bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-950/50 dark:text-amber-300"
-                                @click.stop="router.visit(`/dashboard/menus/${item.uuid}/mute`)"
-                            >
-                                <BellOff class="h-3 w-3" />
-                                Muted
-                            </Badge>
-                            <Megaphone
-                                v-else-if="item.status"
-                                class="h-3.5 w-3.5 cursor-pointer text-muted-foreground/40 hover:text-muted-foreground"
-                                @click.stop="router.visit(`/dashboard/menus/${item.uuid}/mute`)"
-                            />
                         </div>
                     </template>
                 </TableReusable>

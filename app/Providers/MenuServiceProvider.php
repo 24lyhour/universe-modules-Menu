@@ -2,9 +2,10 @@
 
 namespace Modules\Menu\Providers;
 
-use App\Services\MenuService;
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Modules\Menu\Http\Middleware\DashboardMiddlewareHandle;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -29,31 +30,19 @@ class MenuServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
-        $this->registerMenuItems();
+        $this->registerDashboardMiddleware();
     }
 
     /**
-     * Register menu items for the Menu module.
+     * Append the dashboard middleware to the `web` group so the Menu module's
+     * sidebar items are registered on every dashboard render — but skipped
+     * for API and console requests.
      */
-    protected function registerMenuItems(): void
+    protected function registerDashboardMiddleware(): void
     {
-        $this->app->booted(function () {
-            MenuService::addMenuItem(
-                menu: 'primary',
-                id: 'menu',
-                title: __('Menu'),
-                url: route('menu.menus.index'),
-                icon: 'UtensilsCrossed',
-                order: 60,
-                permissions: 'menus.view_any',
-                route: 'menu.*'
-            );
-
-            MenuService::addSubmenuItem('primary', 'menu', __('Menus'), route('menu.menus.index'), 10, 'menus.view_any', 'menu.menus.*', 'UtensilsCrossed');
-            MenuService::addSubmenuItem('primary', 'menu', __('Categories'), route('menu.categories.index'), 20, 'categories.view_any', 'menu.categories.*', 'Layers');
-            MenuService::addSubmenuItem('primary', 'menu', __('Menu Types'), route('menu.menu-types.index'), 30, 'menu_types.view_any', 'menu.menu-types.*', 'ListOrdered');
-
-        });
+        /** @var \Illuminate\Foundation\Http\Kernel $kernel */
+        $kernel = $this->app->make(HttpKernel::class);
+        $kernel->prependMiddlewareToGroup('web', DashboardMiddlewareHandle::class);
     }
 
     /**

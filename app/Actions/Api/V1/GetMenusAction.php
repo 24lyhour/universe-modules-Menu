@@ -13,6 +13,9 @@ class GetMenusAction
      */
     public function execute(?int $outletId = null): Collection
     {
+        // available() = status=true AND not currently muted (auto-expiry aware).
+        // Muted menus disappear from the customer app entirely — no banner, no
+        // greyed-out state — until staff unmute or muted_until passes.
         $query = Menu::with([
                 'outlet',
                 'menuType',
@@ -25,12 +28,18 @@ class GetMenusAction
                       ->wherePivot('is_available', true);
                 },
             ])
-            ->where('status', true);
+            ->available();
 
         if ($outletId) {
             $query->where('outlet_id', $outletId);
         }
 
-        return $query->orderBy('name')->get();
+        // Schedule logic is too rich for a single SQL clause (weekly day-of-week,
+        // date ranges) so we filter in PHP after fetching. Outlets typically have
+        // <20 menus so the cost is negligible.
+        return $query->orderBy('name')
+            ->get()
+            ->filter->isWithinSchedule()
+            ->values();
     }
 }

@@ -35,6 +35,25 @@ class MenuService
             $query->where('status', $filters['status']);
         }
 
+        // Outlet filter
+        if (!empty($filters['outlet_id'])) {
+            $query->where('outlet_id', $filters['outlet_id']);
+        }
+
+        // Menu type filter
+        if (!empty($filters['menu_type_id'])) {
+            $query->where('menu_type_id', $filters['menu_type_id']);
+        }
+
+        // Mute filter — 'muted' / 'unmuted' (auto-expiry aware via scopes).
+        if (!empty($filters['mute'])) {
+            if ($filters['mute'] === 'muted') {
+                $query->muted();
+            } elseif ($filters['mute'] === 'unmuted') {
+                $query->notMuted();
+            }
+        }
+
         return $query->latest()->paginate($perPage);
     }
 

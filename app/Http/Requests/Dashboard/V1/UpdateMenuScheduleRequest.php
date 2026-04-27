@@ -17,6 +17,27 @@ class UpdateMenuScheduleRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      */
+    /**
+     * Coerce empty strings and "[]" payloads to null so the validation
+     * `date` / `in:` rules don't trip over front-end form defaults.
+     */
+    protected function prepareForValidation(): void
+    {
+        $clean = function ($value) {
+            if ($value === '' || $value === '[]') return null;
+            return $value;
+        };
+
+        $this->merge([
+            'schedule_mode' => $clean($this->input('schedule_mode')),
+            'schedule_days' => $clean($this->input('schedule_days')),
+            'schedule_start_time' => $clean($this->input('schedule_start_time')),
+            'schedule_end_time' => $clean($this->input('schedule_end_time')),
+            'schedule_start_date' => $clean($this->input('schedule_start_date')),
+            'schedule_end_date' => $clean($this->input('schedule_end_date')),
+        ]);
+    }
+
     public function rules(): array
     {
         return [

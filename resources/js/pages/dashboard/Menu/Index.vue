@@ -35,15 +35,27 @@ const props = defineProps<MenuIndexProps>();
 
 const search = ref(props.filters.search || '');
 const statusFilter = ref(props.filters.status || 'all');
+const outletFilter = ref(props.filters.outlet_id || 'all');
+const menuTypeFilter = ref(props.filters.menu_type_id || 'all');
+const muteFilter = ref(props.filters.mute || 'all');
 const selectedUuids = ref<(string | number)[]>([]);
 
-// Check if any filters are active
-const hasActiveFilters = computed(() => {
-    return !!(
-        search.value ||
-        (statusFilter.value !== 'all' && statusFilter.value !== '')
-    );
+// Build the query payload — undefined drops the param so the URL stays clean.
+const buildQuery = () => ({
+    search: search.value || undefined,
+    status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
+    outlet_id: outletFilter.value !== 'all' ? outletFilter.value : undefined,
+    menu_type_id: menuTypeFilter.value !== 'all' ? menuTypeFilter.value : undefined,
+    mute: muteFilter.value !== 'all' ? muteFilter.value : undefined,
 });
+
+const hasActiveFilters = computed(() =>
+    !!(search.value
+        || statusFilter.value !== 'all'
+        || outletFilter.value !== 'all'
+        || menuTypeFilter.value !== 'all'
+        || muteFilter.value !== 'all')
+);
 
 const columns: TableColumn<Menu>[] = [
     {
@@ -155,36 +167,20 @@ const pagination = computed<PaginationData>(() => ({
     total: props.menuItems.meta.total,
 }));
 
-const handlePageChange = (page: number) => {
-    router.get('/dashboard/menus', {
-        page,
-        per_page: pagination.value.per_page,
-        search: search.value || undefined,
-        status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
-    }, { preserveState: true });
+const reload = (extra: Record<string, unknown> = {}) => {
+    router.get('/dashboard/menus',
+        { ...buildQuery(), ...extra },
+        { preserveState: true, preserveScroll: true });
 };
 
-const handlePerPageChange = (perPage: number) => {
-    router.get('/dashboard/menus', {
-        per_page: perPage,
-        search: search.value || undefined,
-        status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
-    }, { preserveState: true });
-};
+const handlePageChange = (page: number) =>
+    reload({ page, per_page: pagination.value.per_page });
 
-const handleSearch = () => {
-    router.get('/dashboard/menus', {
-        search: search.value || undefined,
-        status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
-    }, { preserveState: true });
-};
+const handlePerPageChange = (perPage: number) => reload({ per_page: perPage });
 
-watch(statusFilter, () => {
-    router.get('/dashboard/menus', {
-        search: search.value || undefined,
-        status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
-    }, { preserveState: true });
-});
+const handleSearch = () => reload();
+
+watch([statusFilter, outletFilter, menuTypeFilter, muteFilter], () => reload());
 
 const handleCreate = () => {
     router.visit('/dashboard/menus/create');
@@ -208,6 +204,9 @@ const handleDownloadTemplate = () => {
 const handleClearFilters = () => {
     search.value = '';
     statusFilter.value = 'all';
+    outletFilter.value = 'all';
+    menuTypeFilter.value = 'all';
+    muteFilter.value = 'all';
     router.get('/dashboard/menus', {}, { preserveState: true, preserveScroll: true });
 };
 
@@ -318,13 +317,53 @@ const openBulkDeleteDialog = () => {
                         />
                     </div>
                     <Select v-model="statusFilter">
-                        <SelectTrigger class="w-[150px]">
+                        <SelectTrigger class="w-[140px]">
                             <SelectValue placeholder="Status" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Status</SelectItem>
                             <SelectItem value="1">Active</SelectItem>
                             <SelectItem value="0">Inactive</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Select v-model="outletFilter">
+                        <SelectTrigger class="w-[180px]">
+                            <SelectValue placeholder="Outlet" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Outlets</SelectItem>
+                            <SelectItem
+                                v-for="o in props.outlets"
+                                :key="o.id"
+                                :value="String(o.id)"
+                            >
+                                {{ o.name }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Select v-model="menuTypeFilter">
+                        <SelectTrigger class="w-[170px]">
+                            <SelectValue placeholder="Menu Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Types</SelectItem>
+                            <SelectItem
+                                v-for="t in props.menuTypes"
+                                :key="t.id"
+                                :value="String(t.id)"
+                            >
+                                {{ t.name }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Select v-model="muteFilter">
+                        <SelectTrigger class="w-[140px]">
+                            <SelectValue placeholder="Mute" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All</SelectItem>
+                            <SelectItem value="muted">Muted</SelectItem>
+                            <SelectItem value="unmuted">Live</SelectItem>
                         </SelectContent>
                     </Select>
                     <!-- Clear Filters Button -->

@@ -60,6 +60,15 @@ export interface PaginatedResponse<T> {
 export interface MenuFilters {
     status?: string;
     search?: string;
+    outlet_id?: string;
+    menu_type_id?: string;
+    mute?: string;
+}
+
+export interface MenuLookupOption {
+    id: number;
+    uuid?: string;
+    name: string;
 }
 
 export interface MenuFormData {
@@ -92,6 +101,8 @@ export interface MenuIndexProps {
     menuItems: PaginatedResponse<Menu>;
     filters: MenuFilters;
     stats: MenuStats;
+    outlets: MenuLookupOption[];
+    menuTypes: MenuLookupOption[];
 }
 
 export interface MenuShowProps {

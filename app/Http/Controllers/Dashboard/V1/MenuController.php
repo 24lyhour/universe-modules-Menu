@@ -49,15 +49,25 @@ class MenuController extends Controller
     public function index(Request $request): Response
     {
         $perPage = $request->input('per_page', 10);
-        $filters = $request->only(['search', 'status']);
+        $filters = $request->only(['search', 'status', 'outlet_id', 'menu_type_id', 'mute']);
 
         $menus = $this->menuService->paginate($perPage, $filters);
         $stats = $this->menuService->getStats();
+
+        $outlets = Outlet::where('status', 'active')
+            ->orderBy('name')
+            ->get(['id', 'uuid', 'name']);
+
+        $menuTypes = MenuType::where('status', true)
+            ->orderBy('sort_order')
+            ->get(['id', 'uuid', 'name']);
 
         return Inertia::render('menu::dashboard/Menu/Index', [
             'menuItems' => MenuResource::collection($menus)->response()->getData(true),
             'filters' => $filters,
             'stats' => $stats,
+            'outlets' => $outlets,
+            'menuTypes' => $menuTypes,
         ]);
     }
 

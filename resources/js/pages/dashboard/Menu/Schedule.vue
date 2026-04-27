@@ -99,10 +99,25 @@ const selectedModeInfo = computed(() => {
 });
 
 const handleSubmit = () => {
-    // Convert selected days to JSON string
-    form.schedule_days = JSON.stringify(selectedDays.value);
+    // Only send fields relevant to the chosen mode. The backend mirrors
+    // this and nulls anything else, but trimming the payload here keeps
+    // validation errors meaningful.
+    const mode = form.schedule_mode;
+    form.schedule_days = mode === 'weekly' && selectedDays.value.length
+        ? JSON.stringify(selectedDays.value)
+        : '';
+    if (mode === 'always') {
+        form.schedule_start_time = '';
+        form.schedule_end_time = '';
+        form.schedule_start_date = '';
+        form.schedule_end_date = '';
+    } else if (mode !== 'date_range') {
+        form.schedule_start_date = '';
+        form.schedule_end_date = '';
+    }
 
     form.put(`/dashboard/menus/${props.menu.uuid}/schedule`, {
+        preserveScroll: true,
         onSuccess: () => {
             close();
             redirect();

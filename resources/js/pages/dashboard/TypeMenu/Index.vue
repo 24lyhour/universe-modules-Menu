@@ -55,6 +55,11 @@ const columns: TableColumn<MenuType>[] = [
         render: (menuType) => menuType.sort_order.toString(),
     },
     {
+        key: 'menus_count',
+        label: 'Menus',
+        render: (menuType) => menuType.menus_count?.toString() ?? '0',
+    },
+    {
         key: 'status',
         label: 'Status',
         render: (menuType) => menuType.status ? 'Active' : 'Inactive',

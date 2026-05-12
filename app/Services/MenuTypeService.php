@@ -22,6 +22,8 @@ class MenuTypeService
             $query->where('name', 'like', "%{$search}%");
         }
 
+        $menuCounts = Menu::count()->with('menu_id');
+        
         return $query->orderBy('deleted_at', 'desc')->paginate($perPage);
     }
 
@@ -32,10 +34,10 @@ class MenuTypeService
     {
         return Cache::remember(self::CACHE_KEY_STATS, self::CACHE_TTL, function () {
             return [
-                'total' => MenuType::count(),
-                'active' => MenuType::where('status', true)->count(),
-                'inactive' => MenuType::where('status', false)->count(),
-                'trashed' => MenuType::onlyTrashed()->count(),
+                'total'     => MenuType::count(),
+                'active'    => MenuType::where('status', true)->count(),
+                'inactive'  => MenuType::where('status', false)->count(),
+                'trashed'   => MenuType::onlyTrashed()->count(),
             ];
         });
     }

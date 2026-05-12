@@ -12,7 +12,7 @@ class GetMenuTypeIndexDataAction
      */
     public function execute(int $perPage = 10, array $filters = []): array
     {
-        $query = MenuType::with('outlet');
+        $query = MenuType::with('outlet')->withCount('menus');
 
         if (!empty($filters['search'])) {
             $query->where('name', 'like', '%' . $filters['search'] . '%');
